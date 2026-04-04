@@ -5,7 +5,7 @@ export function rangeLastDays(days: number): { from: string; to: string } {
   return { from: start, to: end };
 }
 
-function utcToday(): string {
+export function utcToday(): string {
   const n = new Date();
   return toIsoDate(n);
 }

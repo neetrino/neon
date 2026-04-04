@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { NEON_USAGE_METRIC_LABELS } from "@/lib/constants/neon-metrics";
 import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
 import { buildRechartsRows } from "@/components/dashboard/chart-data";
+import { DashboardFilterSidebar } from "@/components/dashboard/DashboardFilterSidebar";
 import { rangeLastDays } from "@/components/dashboard/date-presets";
 import {
   formatAbbrev,
@@ -24,17 +26,6 @@ import type {
   UsageSeriesResponse,
 } from "@/components/dashboard/types";
 
-const PRESETS = [
-  { label: "7d", days: 7 },
-  { label: "30d", days: 30 },
-  { label: "60d", days: 60 },
-] as const;
-
-const BTN_PRESET_ACTIVE =
-  "bg-teal-600 text-white shadow-sm ring-1 ring-teal-600/20";
-const BTN_PRESET_IDLE =
-  "bg-zinc-100 text-zinc-700 hover:bg-zinc-200/80";
-
 async function readJson<T>(res: Response): Promise<T> {
   if (res.status === 401) {
     window.location.href = "/login";
@@ -48,7 +39,6 @@ async function readJson<T>(res: Response): Promise<T> {
 }
 
 export function UsageDashboard() {
-  const [preset, setPreset] = useState<(typeof PRESETS)[number]>(PRESETS[1]);
   const [range, setRange] = useState(() => rangeLastDays(30));
   const [metric, setMetric] = useState<NeonUsageMetricName>("compute_unit_seconds");
   const [groupBy, setGroupBy] = useState<"day" | "month">("day");
@@ -127,12 +117,6 @@ export function UsageDashboard() {
     void load();
   }, [load]);
 
-  const onPreset = (days: number) => {
-    const p = PRESETS.find((x) => x.days === days) ?? PRESETS[1];
-    setPreset(p);
-    setRange(rangeLastDays(days));
-  };
-
   const { rows, projectIds } = useMemo(() => buildRechartsRows(points), [points]);
 
   const totalForPeriod = useMemo(() => {
@@ -150,82 +134,14 @@ export function UsageDashboard() {
     window.location.href = "/login";
   };
 
+  const daysInRangeLabel =
+    totalsPayload !== null ? String(totalsPayload.calendarDays) : loading ? "…" : "—";
+
   return (
-    <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-[1.65rem]">
-            <span className="text-gradient">Neon</span> usage
-          </h1>
-        </div>
-        <button
-          type="button"
-          onClick={() => void logout()}
-          className="self-start rounded-md border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
-        >
-          Sign out
-        </button>
-      </header>
-
-      <SyncPanel runs={runs} />
-
-      {error ? (
-        <div
-          className="glass-card border-red-200 bg-red-50/80 px-4 py-3 text-sm text-red-800"
-          role="alert"
-        >
-          {error}
-        </div>
-      ) : null}
-
-      <section className="glass-card flex flex-col gap-3 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-sm font-medium text-zinc-700">Period</span>
-          <span className="font-mono text-xs text-zinc-500">
-            {range.from} → {range.to}
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {PRESETS.map((p) => (
-            <button
-              key={p.label}
-              type="button"
-              onClick={() => onPreset(p.days)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                preset.days === p.days ? BTN_PRESET_ACTIVE : BTN_PRESET_IDLE
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Total" value={formatAbbrev(totalForPeriod)} />
-        <KpiCard label="Projects" value={String(projectIds.length)} />
-        <KpiCard label="Range" value={`${range.from} → ${range.to}`} />
-        <KpiCard label="Step" value={groupBy === "day" ? "Daily" : "Monthly"} />
-      </section>
-
-      <section className="glass-card flex flex-col gap-4 p-4 sm:p-5">
-        <h2 className="text-sm font-semibold text-zinc-900">By project</h2>
-        {loading && !totalsPayload ? (
-          <p className="text-sm text-zinc-500">Loading…</p>
-        ) : (
-          <ProjectCompareBars
-            data={compareBarData}
-            calendarDays={totalsPayload?.calendarDays ?? 1}
-          />
-        )}
-      </section>
-
-      <UsageLineChartPanel
-        loading={loading}
-        rows={rows}
-        projectIds={projectIds}
-        projectNames={projectNames}
-        rangeLabel={`${range.from} → ${range.to}`}
+    <div className="flex min-h-screen flex-col lg:flex-row">
+      <DashboardFilterSidebar
+        range={range}
+        onRangeChange={setRange}
         metric={metric}
         setMetric={setMetric}
         groupBy={groupBy}
@@ -234,13 +150,66 @@ export function UsageDashboard() {
         setProjectId={setProjectId}
         projects={projects}
         onRefresh={load}
+        loading={loading}
       />
 
-      <ProjectTable
-        projects={projects}
-        usageByProjectId={usageByProjectId}
-        calendarDays={totalsPayload?.calendarDays ?? null}
-      />
+      <div className="flex min-w-0 flex-1 flex-col gap-6 p-4 sm:p-6 lg:max-w-[calc(100vw-17.5rem)]">
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+            <span className="text-gradient">Neon</span> usage
+          </h1>
+          <button
+            type="button"
+            onClick={() => void logout()}
+            className="self-start rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
+          >
+            Sign out
+          </button>
+        </header>
+
+        <SyncPanel runs={runs} />
+
+        {error ? (
+          <div
+            className="glass-card border-red-200 bg-red-50/80 px-4 py-3 text-sm text-red-800"
+            role="alert"
+          >
+            {error}
+          </div>
+        ) : null}
+
+        <section className="grid gap-3 sm:grid-cols-3">
+          <KpiCard label="Total (metric)" value={formatAbbrev(totalForPeriod)} />
+          <KpiCard label="Series projects" value={String(projectIds.length)} />
+          <KpiCard label="Days in range" value={daysInRangeLabel} />
+        </section>
+
+        <section className="glass-card flex flex-col gap-4 p-4 sm:p-5">
+          <h2 className="text-sm font-semibold text-zinc-900">Compute by project</h2>
+          {loading && !totalsPayload ? (
+            <p className="text-sm text-zinc-500">Loading…</p>
+          ) : (
+            <ProjectCompareBars
+              data={compareBarData}
+              calendarDays={totalsPayload?.calendarDays ?? 1}
+            />
+          )}
+        </section>
+
+        <UsageLineChartPanel
+          loading={loading}
+          rows={rows}
+          projectIds={projectIds}
+          projectNames={projectNames}
+          metricTitle={NEON_USAGE_METRIC_LABELS[metric]}
+        />
+
+        <ProjectTable
+          projects={projects}
+          usageByProjectId={usageByProjectId}
+          calendarDays={totalsPayload?.calendarDays ?? null}
+        />
+      </div>
     </div>
   );
 }

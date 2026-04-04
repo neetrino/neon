@@ -4,13 +4,14 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { COMPUTE_BAR_FILL } from "@/components/dashboard/chart-colors";
+import { SERIES_COLORS } from "@/components/dashboard/chart-colors";
 import { formatAbbrev } from "@/components/dashboard/DashboardWidgets";
 import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
 import {
@@ -23,10 +24,10 @@ import {
 
 /** Target ~10 projects visible before horizontal scroll at ~960px viewport. */
 const BAR_SLOT_PX = 96;
-const CHART_HEIGHT_PX = 380;
-const CHART_MARGIN = { top: 28, right: 16, left: 8, bottom: 52 } as const;
+const CHART_HEIGHT_PX = 400;
+const CHART_MARGIN = { top: 32, right: 16, left: 8, bottom: 52 } as const;
 const CHART_MIN_INNER_WIDTH_PX = 520;
-const CHART_GRID_STROKE = "rgba(24, 24, 27, 0.06)";
+const CHART_GRID_STROKE = "rgba(24, 24, 27, 0.07)";
 const CHART_AXIS_LINE = "rgba(24, 24, 27, 0.12)";
 const TICK_FILL = "#71717a";
 
@@ -68,24 +69,24 @@ function CompareTooltip({
     storageBn = 0n;
   }
   return (
-    <div className="max-w-xs rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-700 shadow-lg">
-      <p className="font-medium text-zinc-900">{row.fullName}</p>
+    <div className="max-w-xs rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-xs text-zinc-700 shadow-xl">
+      <p className="font-semibold text-zinc-900">{row.fullName}</p>
       <ul className="mt-2 space-y-1.5">
         <li>
           <span className="text-zinc-500">CU·s total</span>
-          <div className="font-mono text-zinc-900">
+          <div className="font-mono text-sm text-zinc-900">
             {formatTotalsIntegerString(row.computeExact)}
           </div>
         </li>
         <li>
           <span className="text-zinc-500">CU·s / day</span>
-          <div className="font-mono text-zinc-900">
+          <div className="font-mono text-sm text-zinc-900">
             {formatAvgBigIntPerDay(row.computeExact, calendarDays)}
           </div>
         </li>
         <li>
           <span className="text-zinc-500">Storage (byte·month)</span>
-          <div className="font-mono text-zinc-900">{formatByteMonthSumScaled(storageBn)}</div>
+          <div className="font-mono text-sm text-zinc-900">{formatByteMonthSumScaled(storageBn)}</div>
         </li>
       </ul>
     </div>
@@ -138,14 +139,20 @@ export function ProjectCompareBars({
                 fontSize: 11,
               }}
             />
-            <Tooltip content={<CompareTooltip calendarDays={calendarDays} />} />
+            <Tooltip content={<CompareTooltip calendarDays={calendarDays} />} cursor={{ fill: "rgba(24,24,27,0.04)" }} />
             <Bar
               dataKey="compute"
               name="Compute (CU·s)"
-              fill={COMPUTE_BAR_FILL}
-              maxBarSize={BAR_SLOT_PX - 20}
+              radius={[6, 6, 0, 0]}
+              maxBarSize={BAR_SLOT_PX - 18}
               isAnimationActive={false}
             >
+              {data.map((entry, i) => (
+                <Cell
+                  key={`${entry.fullName}-${i}`}
+                  fill={SERIES_COLORS[i % SERIES_COLORS.length]}
+                />
+              ))}
               <LabelList
                 dataKey="compute"
                 position="top"
