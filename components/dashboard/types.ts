@@ -91,6 +91,9 @@ export type CostSummary = {
   neonTotalUsd: number;
   vercelTotalUsd: number;
   grandTotalUsd: number;
+  vercelBandwidthUsd: number;
+  vercelFunctionsPlusEdgeUsd: number;
+  vercelBuildUsd: number;
 };
 
 export type ProjectTotalsResponse = {

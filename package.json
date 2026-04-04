@@ -18,7 +18,8 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "usage:backfill": "tsx scripts/backfill-neon-usage.ts",
-    "usage:reconcile": "tsx scripts/reconcile-neon-usage.ts"
+    "usage:reconcile": "tsx scripts/reconcile-neon-usage.ts",
+    "vercel:backfill": "tsx scripts/backfill-vercel-usage.ts"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [

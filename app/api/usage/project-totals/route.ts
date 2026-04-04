@@ -96,7 +96,12 @@ async function buildNeonProjects(fromDate: Date, toDate: Date, days: number) {
         NEON_USAGE_METRICS.map((m) => [m, avgPerDay(p.totals[m], days)]),
       ) as Record<NeonUsageMetricName, number>;
       const normalizedTotals = normalizeTotals(p.totals, periodHours);
-      const estimatedCost = estimateProjectCost(p.totals, normalizedTotals, pricingRates, periodHours);
+      const estimatedCost = estimateProjectCost(
+        p.totals,
+        normalizedTotals,
+        pricingRates,
+        periodHours,
+      );
 
       return {
         provider: 'neon' as const,
@@ -243,10 +248,7 @@ export async function GET(request: Request) {
     provider !== 'neon' ? buildVercelProjects(fromDate, toDate) : null,
   ]);
 
-  const allProjects = [
-    ...(neonResult?.projects ?? []),
-    ...(vercelProjects ?? []),
-  ];
+  const allProjects = [...(neonResult?.projects ?? []), ...(vercelProjects ?? [])];
 
   const neonTotal = (neonResult?.projects ?? []).reduce(
     (sum, p) => sum + (p.estimatedCost?.totalUsd ?? 0),
@@ -254,6 +256,18 @@ export async function GET(request: Request) {
   );
   const vercelTotal = (vercelProjects ?? []).reduce(
     (sum, p) => sum + (p.vercelCost?.totalUsd ?? 0),
+    0,
+  );
+  const vercelBandwidthUsd = (vercelProjects ?? []).reduce(
+    (sum, p) => sum + (p.vercelCost?.bandwidthUsd ?? 0),
+    0,
+  );
+  const vercelFunctionsPlusEdgeUsd = (vercelProjects ?? []).reduce(
+    (sum, p) => sum + (p.vercelCost?.functionUsd ?? 0) + (p.vercelCost?.edgeFunctionUsd ?? 0),
+    0,
+  );
+  const vercelBuildUsd = (vercelProjects ?? []).reduce(
+    (sum, p) => sum + (p.vercelCost?.buildUsd ?? 0),
     0,
   );
 
@@ -269,6 +283,9 @@ export async function GET(request: Request) {
       neonTotalUsd: neonTotal,
       vercelTotalUsd: vercelTotal,
       grandTotalUsd: neonTotal + vercelTotal,
+      vercelBandwidthUsd,
+      vercelFunctionsPlusEdgeUsd,
+      vercelBuildUsd,
     },
     projects: allProjects,
   });

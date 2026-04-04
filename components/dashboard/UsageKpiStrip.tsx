@@ -60,15 +60,7 @@ function MetricCell({ label, value, hint }: { label: string; value: string; hint
   );
 }
 
-function CostCard({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-}) {
+function CostCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div
       className={`rounded-xl border px-4 py-3 ${
@@ -135,15 +127,16 @@ export function UsageKpiStrip({
         className="rounded-xl border border-zinc-200 bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5"
         aria-label="Vercel cost summary"
       >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <CostCard
             label="Bandwidth"
-            value={loading ? '…' : formatUsd(0)}
+            value={loading ? '…' : formatUsd(costSummary.vercelBandwidthUsd)}
           />
           <CostCard
             label="Functions + Edge"
-            value={loading ? '…' : formatUsd(0)}
+            value={loading ? '…' : formatUsd(costSummary.vercelFunctionsPlusEdgeUsd)}
           />
+          <CostCard label="Builds" value={loading ? '…' : formatUsd(costSummary.vercelBuildUsd)} />
           <CostCard
             label="Total Vercel charges"
             value={loading ? '…' : formatUsd(costSummary.vercelTotalUsd)}
