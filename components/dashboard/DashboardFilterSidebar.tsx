@@ -12,7 +12,7 @@ import {
   utcToday,
 } from '@/components/dashboard/date-presets';
 import { isValidIsoDate, normalizeRange } from '@/components/dashboard/date-range-validate';
-import type { ProjectRow } from '@/components/dashboard/types';
+import type { ProjectRow, Provider } from '@/components/dashboard/types';
 
 const PRESETS = [
   { label: 'Current month', getRange: rangeCurrentMonthUtc },
@@ -21,6 +21,12 @@ const PRESETS = [
   { label: '30 days', getRange: () => rangeLastDays(30) },
   { label: '60 days', getRange: () => rangeLastDays(60) },
 ] as const;
+
+const PROVIDERS: { label: string; value: Provider | 'all' }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Neon', value: 'neon' },
+  { label: 'Vercel', value: 'vercel' },
+];
 
 const SELECT_CLASS =
   'mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none focus:border-teal-600/40 focus:ring-2 focus:ring-teal-600/20';
@@ -45,6 +51,8 @@ export function DashboardFilterSidebar({
   projectId,
   setProjectId,
   projects,
+  provider,
+  setProvider,
   onRefresh,
   loading,
 }: {
@@ -57,20 +65,18 @@ export function DashboardFilterSidebar({
   projectId: string;
   setProjectId: (id: string) => void;
   projects: ProjectRow[];
+  provider: Provider | 'all';
+  setProvider: (p: Provider | 'all') => void;
   onRefresh: () => void;
   loading: boolean;
 }) {
   const setFrom = (from: string) => {
-    if (!isValidIsoDate(from)) {
-      return;
-    }
+    if (!isValidIsoDate(from)) return;
     onRangeChange(normalizeRange(from, range.to));
   };
 
   const setTo = (to: string) => {
-    if (!isValidIsoDate(to)) {
-      return;
-    }
+    if (!isValidIsoDate(to)) return;
     onRangeChange(normalizeRange(range.from, to));
   };
 
@@ -81,6 +87,32 @@ export function DashboardFilterSidebar({
       <div className="sticky top-0 flex max-h-none flex-col gap-6 p-4 lg:max-h-screen lg:overflow-y-auto">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Filters</p>
+        </div>
+
+        <div>
+          <p className={LABEL_CLASS}>Provider</p>
+          <div className="mt-2 flex gap-1">
+            {PROVIDERS.map((p) => {
+              const active = provider === p.value;
+              return (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => {
+                    setProvider(p.value);
+                    setProjectId('');
+                  }}
+                  className={`flex-1 rounded-lg px-2 py-2 text-center text-sm font-medium transition ${
+                    active
+                      ? 'bg-teal-600 text-white shadow-sm'
+                      : 'bg-white text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div>
@@ -136,36 +168,40 @@ export function DashboardFilterSidebar({
           </p>
         </div>
 
-        <div>
-          <label className="block">
-            <span className={LABEL_CLASS}>Chart metric</span>
-            <select
-              value={metric}
-              onChange={(e) => setMetric(e.target.value as NeonUsageMetricName)}
-              className={SELECT_CLASS}
-            >
-              {NEON_USAGE_METRICS.map((m) => (
-                <option key={m} value={m}>
-                  {NEON_USAGE_METRIC_LABELS[m]}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        {provider !== 'vercel' ? (
+          <div>
+            <label className="block">
+              <span className={LABEL_CLASS}>Chart metric</span>
+              <select
+                value={metric}
+                onChange={(e) => setMetric(e.target.value as NeonUsageMetricName)}
+                className={SELECT_CLASS}
+              >
+                {NEON_USAGE_METRICS.map((m) => (
+                  <option key={m} value={m}>
+                    {NEON_USAGE_METRIC_LABELS[m]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        ) : null}
 
-        <div>
-          <label className="block">
-            <span className={LABEL_CLASS}>Step</span>
-            <select
-              value={groupBy}
-              onChange={(e) => setGroupBy(e.target.value as 'day' | 'month')}
-              className={SELECT_CLASS}
-            >
-              <option value="day">Daily</option>
-              <option value="month">Monthly</option>
-            </select>
-          </label>
-        </div>
+        {provider !== 'vercel' ? (
+          <div>
+            <label className="block">
+              <span className={LABEL_CLASS}>Step</span>
+              <select
+                value={groupBy}
+                onChange={(e) => setGroupBy(e.target.value as 'day' | 'month')}
+                className={SELECT_CLASS}
+              >
+                <option value="day">Daily</option>
+                <option value="month">Monthly</option>
+              </select>
+            </label>
+          </div>
+        ) : null}
 
         <div>
           <label className="block">
@@ -180,6 +216,7 @@ export function DashboardFilterSidebar({
               {projects.map((p) => (
                 <option key={p.neonProjectId} value={p.neonProjectId}>
                   {p.name}
+                  {provider === 'all' ? ` (${p.provider})` : ''}
                 </option>
               ))}
             </select>

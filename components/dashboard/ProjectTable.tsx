@@ -50,10 +50,12 @@ export function ProjectTable({
   projects,
   usageByProjectId,
   calendarDays,
+  showProviderBadge,
 }: {
   projects: ProjectRow[];
   usageByProjectId: Map<string, ProjectUsageAggregate> | null;
   calendarDays: number | null;
+  showProviderBadge?: boolean;
 }) {
   const [view, setView] = useState<ViewMode>('cards');
   const [hydrated, setHydrated] = useState(false);
@@ -92,9 +94,9 @@ export function ProjectTable({
         {sortedProjects.length === 0 ? (
           <p className="text-sm text-zinc-500">No projects yet.</p>
         ) : view === 'cards' ? (
-          <ProjectTableCards projects={sortedProjects} usageByProjectId={usageByProjectId} />
+          <ProjectTableCards projects={sortedProjects} usageByProjectId={usageByProjectId} showProviderBadge={showProviderBadge} />
         ) : (
-          <ProjectTableList projects={sortedProjects} usageByProjectId={usageByProjectId} />
+          <ProjectTableList projects={sortedProjects} usageByProjectId={usageByProjectId} showProviderBadge={showProviderBadge} />
         )}
       </div>
 

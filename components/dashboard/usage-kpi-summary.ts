@@ -1,4 +1,4 @@
-import type { ProjectUsageAggregate } from '@/components/dashboard/types';
+import type { NeonUsageAggregate, CostSummary } from '@/components/dashboard/types';
 
 export type DashboardKpiSums = {
   computeCuHours: number;
@@ -8,7 +8,7 @@ export type DashboardKpiSums = {
   estimatedTotalUsd: number;
 };
 
-export function sumDashboardKpis(projects: ProjectUsageAggregate[]): DashboardKpiSums {
+export function sumDashboardKpis(projects: NeonUsageAggregate[]): DashboardKpiSums {
   return projects.reduce(
     (acc, p) => {
       acc.computeCuHours += p.normalizedTotals.computeCuHours;
@@ -38,4 +38,19 @@ export function formatGb(value: number): string {
 
 export function formatUsd(value: number): string {
   return `$${value.toFixed(2)}`;
+}
+
+export function costSummaryFromProjects(
+  projects: Array<{ provider: 'neon' | 'vercel'; estimatedCost: { totalUsd: number } | null; vercelCost: { totalUsd: number } | null }>,
+): CostSummary {
+  let neonTotalUsd = 0;
+  let vercelTotalUsd = 0;
+  for (const p of projects) {
+    if (p.provider === 'neon') {
+      neonTotalUsd += p.estimatedCost?.totalUsd ?? 0;
+    } else {
+      vercelTotalUsd += p.vercelCost?.totalUsd ?? 0;
+    }
+  }
+  return { neonTotalUsd, vercelTotalUsd, grandTotalUsd: neonTotalUsd + vercelTotalUsd };
 }

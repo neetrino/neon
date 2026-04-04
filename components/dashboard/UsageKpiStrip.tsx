@@ -4,6 +4,7 @@ import { useId } from 'react';
 import type { DashboardKpiSums } from '@/components/dashboard/usage-kpi-summary';
 import { formatCuHours, formatGb, formatUsd } from '@/components/dashboard/usage-kpi-summary';
 import { getKpiTooltip } from '@/lib/constants/kpi-tooltips';
+import type { CostSummary } from '@/components/dashboard/types';
 
 const NEON_USAGE_DOCS_URL = 'https://neon.tech/docs/introduction/plan-billing';
 
@@ -59,20 +60,103 @@ function MetricCell({ label, value, hint }: { label: string; value: string; hint
   );
 }
 
+function CostCard({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-xl border px-4 py-3 ${
+        accent ? 'border-teal-200 bg-teal-50/60' : 'border-zinc-200 bg-white'
+      }`}
+    >
+      <p className="text-xs font-medium text-zinc-500">{label}</p>
+      <p className="mt-1.5 text-xl font-bold tabular-nums tracking-tight text-zinc-900">{value}</p>
+    </div>
+  );
+}
+
 export function UsageKpiStrip({
   loading,
   fromIso,
   toIso,
   sums,
   kpiScope,
+  costSummary,
+  providerMode,
 }: {
   loading: boolean;
   fromIso: string;
   toIso: string;
   sums: DashboardKpiSums | null;
   kpiScope: 'all' | 'project';
+  costSummary: CostSummary | null;
+  providerMode: 'neon' | 'vercel' | 'all';
 }) {
   const placeholder = loading || sums === null ? '…' : '—';
+
+  if (providerMode === 'all' && costSummary) {
+    return (
+      <section
+        className="rounded-xl border border-zinc-200 bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5"
+        aria-label="Combined cost summary"
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <CostCard
+            label="Neon estimated cost"
+            value={loading ? '…' : formatUsd(costSummary.neonTotalUsd)}
+          />
+          <CostCard
+            label="Vercel charges"
+            value={loading ? '…' : formatUsd(costSummary.vercelTotalUsd)}
+          />
+          <CostCard
+            label="Grand total"
+            value={loading ? '…' : formatUsd(costSummary.grandTotalUsd)}
+            accent
+          />
+        </div>
+        <p className="mt-4 text-xs leading-relaxed text-zinc-500">
+          {formatRangeFooter(fromIso, toIso)} Neon cost is estimated; Vercel charges reflect billed
+          amounts for the billing period(s) overlapping the selected date range.
+        </p>
+      </section>
+    );
+  }
+
+  if (providerMode === 'vercel' && costSummary) {
+    return (
+      <section
+        className="rounded-xl border border-zinc-200 bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5"
+        aria-label="Vercel cost summary"
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <CostCard
+            label="Bandwidth"
+            value={loading ? '…' : formatUsd(0)}
+          />
+          <CostCard
+            label="Functions + Edge"
+            value={loading ? '…' : formatUsd(0)}
+          />
+          <CostCard
+            label="Total Vercel charges"
+            value={loading ? '…' : formatUsd(costSummary.vercelTotalUsd)}
+            accent
+          />
+        </div>
+        <p className="mt-4 text-xs leading-relaxed text-zinc-500">
+          {formatRangeFooter(fromIso, toIso)} Vercel charges reflect billed amounts for the billing
+          period(s) overlapping the selected date range.
+        </p>
+      </section>
+    );
+  }
 
   const compute = sums === null ? placeholder : formatCuHours(sums.computeCuHours);
   const storage = sums === null ? placeholder : formatGb(sums.storageAvgGb);

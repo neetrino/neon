@@ -1,4 +1,9 @@
 import type { NeonUsageMetricName } from '@/lib/constants/neon-metrics';
+import type { VercelProjectCost } from '@/lib/vercel/vercel-conversions';
+
+export type { VercelProjectCost };
+
+export type Provider = 'neon' | 'vercel';
 
 export type SeriesPoint = {
   period: string;
@@ -13,10 +18,12 @@ export type UsageSeriesResponse = {
 };
 
 export type ProjectRow = {
+  /** For Neon: Neon project ID. For Vercel: Vercel project ID. Used as unique key. */
   neonProjectId: string;
   name: string;
   regionId: string | null;
   lastSnapshotDate: string | null;
+  provider: Provider;
 };
 
 export type SyncRunRow = {
@@ -29,7 +36,8 @@ export type SyncRunRow = {
   targetDate: string;
 };
 
-export type ProjectUsageAggregate = {
+export type NeonUsageAggregate = {
+  provider: 'neon';
   neonProjectId: string;
   name: string;
   snapshotRows: number;
@@ -61,6 +69,28 @@ export type ProjectUsageAggregate = {
     totalUsd: number;
   };
   averagesPerCalendarDay: Record<NeonUsageMetricName, number>;
+  vercelCost: null;
+};
+
+export type VercelUsageAggregate = {
+  provider: 'vercel';
+  neonProjectId: string;
+  name: string;
+  snapshotRows: number;
+  totals: null;
+  rawTotals: null;
+  normalizedTotals: null;
+  estimatedCost: null;
+  averagesPerCalendarDay: null;
+  vercelCost: VercelProjectCost;
+};
+
+export type ProjectUsageAggregate = NeonUsageAggregate | VercelUsageAggregate;
+
+export type CostSummary = {
+  neonTotalUsd: number;
+  vercelTotalUsd: number;
+  grandTotalUsd: number;
 };
 
 export type ProjectTotalsResponse = {
@@ -68,7 +98,9 @@ export type ProjectTotalsResponse = {
   to: string;
   calendarDays: number;
   periodHours: number;
-  pricingPlan: 'launch' | 'scale';
+  pricingPlan: 'launch' | 'scale' | null;
+  provider: 'neon' | 'vercel' | 'all';
+  costSummary: CostSummary;
   pricingRates: {
     computePerCuHourUsd: number;
     storagePerGbMonthUsd: number;
@@ -77,8 +109,8 @@ export type ProjectTotalsResponse = {
     privateTransferPerGbUsd: number;
     branchesPerMonthUsd: number;
     includedChildBranchesPerProject: number;
-  };
-  totals: {
+  } | null;
+  totals?: {
     snapshotRows: number;
     normalized: {
       computeCuHours: number;

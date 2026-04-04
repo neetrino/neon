@@ -48,3 +48,53 @@ model SyncRun {
   @@index([startedAt])
   @@map("sync_runs")
 }
+
+model VercelProject {
+  vercelProjectId String                @id @map("vercel_project_id")
+  name            String
+  framework       String?
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+  snapshots       VercelUsageSnapshot[]
+
+  @@map("vercel_projects")
+}
+
+/// One row per project per billing period (month). snapshotDate = first day of billing month.
+/// USD amounts come directly from the Vercel billing charges API.
+model VercelUsageSnapshot {
+  id               String   @id @default(cuid())
+  vercelProjectId  String   @map("vercel_project_id")
+  /// First day of the billing month (e.g. 2024-01-01).
+  snapshotDate     DateTime @db.Date @map("snapshot_date")
+  bandwidthGb      Decimal? @map("bandwidth_gb") @db.Decimal(18, 6)
+  bandwidthUsd     Decimal? @map("bandwidth_usd") @db.Decimal(18, 6)
+  functionGbHours  Decimal? @map("function_gb_hours") @db.Decimal(18, 6)
+  functionUsd      Decimal? @map("function_usd") @db.Decimal(18, 6)
+  edgeFunctionCpuMs Decimal? @map("edge_function_cpu_ms") @db.Decimal(18, 2)
+  edgeFunctionUsd  Decimal? @map("edge_function_usd") @db.Decimal(18, 6)
+  buildMinutes     Decimal? @map("build_minutes") @db.Decimal(18, 4)
+  buildUsd         Decimal? @map("build_usd") @db.Decimal(18, 6)
+  imageOptCount    Int?     @map("image_opt_count")
+  imageOptUsd      Decimal? @map("image_opt_usd") @db.Decimal(18, 6)
+  otherUsd         Decimal? @map("other_usd") @db.Decimal(18, 6)
+  totalUsd         Decimal? @map("total_usd") @db.Decimal(18, 6)
+
+  project VercelProject @relation(fields: [vercelProjectId], references: [vercelProjectId], onDelete: Cascade)
+
+  @@unique([vercelProjectId, snapshotDate])
+  @@index([snapshotDate])
+  @@map("vercel_usage_snapshots")
+}
+
+model VercelSyncRun {
+  id           String    @id @default(cuid())
+  startedAt    DateTime  @default(now()) @map("started_at")
+  finishedAt   DateTime? @map("finished_at")
+  status       String
+  errorMessage String?   @map("error_message") @db.Text
+  rowsUpserted Int?      @map("rows_upserted")
+  targetDate   DateTime  @db.Date @map("target_date")
+
+  @@index([startedAt])
+  @@map("vercel_sync_runs")
+}
