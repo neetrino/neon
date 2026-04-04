@@ -1,5 +1,5 @@
-/** Bar fill for compute (CU·s) series. */
-export const COMPUTE_BAR_FILL = "#22d3ee";
+/** Bar fill for compute (CU·s) series (light UI). */
+export const COMPUTE_BAR_FILL = "#0d9488";
 
 /** Bar fill for storage (byte·month) series. */
 export const STORAGE_BAR_FILL = "#a78bfa";

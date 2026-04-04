@@ -30,6 +30,11 @@ const PRESETS = [
   { label: "60d", days: 60 },
 ] as const;
 
+const BTN_PRESET_ACTIVE =
+  "bg-teal-600 text-white shadow-sm ring-1 ring-teal-600/20";
+const BTN_PRESET_IDLE =
+  "bg-zinc-100 text-zinc-700 hover:bg-zinc-200/80";
+
 async function readJson<T>(res: Response): Promise<T> {
   if (res.status === 401) {
     window.location.href = "/login";
@@ -146,29 +151,17 @@ export function UsageDashboard() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-medium tracking-wide text-zinc-500">
-            Neon · consumption analytics
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
-            <span className="text-gradient">Usage</span>{" "}
-            <span className="text-zinc-100">by project</span>
+          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-[1.65rem]">
+            <span className="text-gradient">Neon</span> usage
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-zinc-400">
-            Daily snapshots from Neon&apos;s consumption API (v2), stored in Postgres. Cron syncs
-            yesterday once per day on Vercel. Pick a date range below: both charts use the same{" "}
-            <span className="text-zinc-300">from → to</span> window. Bars rank projects by total
-            compute in that window; the line chart plots the selected metric over time. Billing does
-            not expose per-database splits or a separate RAM series—compute covers provisioned
-            compute for that period.
-          </p>
         </div>
         <button
           type="button"
           onClick={() => void logout()}
-          className="self-start rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-zinc-300 transition hover:border-cyan-500/30 hover:bg-cyan-500/10 hover:text-cyan-100"
+          className="self-start rounded-md border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
         >
           Sign out
         </button>
@@ -178,74 +171,47 @@ export function UsageDashboard() {
 
       {error ? (
         <div
-          className="glass-card border-red-500/20 px-4 py-3 text-sm text-red-300"
+          className="glass-card border-red-200 bg-red-50/80 px-4 py-3 text-sm text-red-800"
           role="alert"
         >
           {error}
         </div>
       ) : null}
 
-      <section className="glass-card flex flex-col gap-3 p-5 sm:p-6">
-        <div>
-          <h2 className="text-lg font-medium text-zinc-100">Date range</h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            Applies to project totals (bar chart), the line chart, and the table. Presets count
-            calendar days through today (UTC).
-          </p>
+      <section className="glass-card flex flex-col gap-3 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="text-sm font-medium text-zinc-700">Period</span>
+          <span className="font-mono text-xs text-zinc-500">
+            {range.from} → {range.to}
+          </span>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex flex-wrap gap-2">
-            {PRESETS.map((p) => (
-              <button
-                key={p.label}
-                type="button"
-                onClick={() => onPreset(p.days)}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                  preset.days === p.days
-                    ? "bg-cyan-500/20 text-cyan-100 ring-1 ring-cyan-500/40"
-                    : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-          <p className="text-sm text-zinc-400">
-            <span className="text-zinc-500">Active range: </span>
-            <span className="font-mono text-zinc-200">
-              {range.from} → {range.to}
-            </span>
-          </p>
+        <div className="flex flex-wrap gap-2">
+          {PRESETS.map((p) => (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() => onPreset(p.days)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                preset.days === p.days ? BTN_PRESET_ACTIVE : BTN_PRESET_IDLE
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Total (selected metric)" value={formatAbbrev(totalForPeriod)} />
-        <KpiCard label="Projects (in chart)" value={String(projectIds.length)} />
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard label="Total" value={formatAbbrev(totalForPeriod)} />
+        <KpiCard label="Projects" value={String(projectIds.length)} />
         <KpiCard label="Range" value={`${range.from} → ${range.to}`} />
-        <KpiCard label="Granularity" value={groupBy === "day" ? "Daily" : "Monthly"} />
+        <KpiCard label="Step" value={groupBy === "day" ? "Daily" : "Monthly"} />
       </section>
 
-      <section className="glass-card flex flex-col gap-4 p-5 sm:p-6">
-        <div>
-          <h2 className="text-lg font-medium text-zinc-100">Project comparison</h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            Totals for{" "}
-            <span className="font-mono text-zinc-400">
-              {range.from} → {range.to}
-            </span>
-            {projectId ? (
-              <>
-                {" "}
-                · filtered to one project (same as line chart &quot;Project&quot; selector).
-              </>
-            ) : (
-              <> · all projects with snapshots in range.</>
-            )}
-          </p>
-        </div>
+      <section className="glass-card flex flex-col gap-4 p-4 sm:p-5">
+        <h2 className="text-sm font-semibold text-zinc-900">By project</h2>
         {loading && !totalsPayload ? (
-          <p className="text-sm text-zinc-500">Loading comparison…</p>
+          <p className="text-sm text-zinc-500">Loading…</p>
         ) : (
           <ProjectCompareBars
             data={compareBarData}

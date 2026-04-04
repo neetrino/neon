@@ -2,9 +2,9 @@ import type { SyncRunRow } from "@/components/dashboard/types";
 
 export function KpiCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="glass-card px-4 py-4">
-      <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">{label}</p>
-      <p className="mt-2 text-xl font-semibold text-zinc-100">{value}</p>
+    <div className="glass-card px-4 py-3.5">
+      <p className="text-xs font-medium text-zinc-500">{label}</p>
+      <p className="mt-1 text-lg font-semibold tabular-nums tracking-tight text-zinc-900">{value}</p>
     </div>
   );
 }
@@ -13,14 +13,12 @@ export function SyncPanel({ runs }: { runs: SyncRunRow[] }) {
   const last = runs[0];
   if (!last) {
     return (
-      <div className="glass-card border-amber-500/20 px-4 py-3 text-sm text-amber-200/90">
-        No sync runs recorded yet. Confirm API access with{" "}
-        <code className="rounded bg-black/30 px-1 py-0.5 text-xs">GET /api/neon/health</code>
-        , then trigger{" "}
-        <code className="rounded bg-black/30 px-1 py-0.5 text-xs">
-          GET /api/cron/sync-neon-usage
-        </code>{" "}
-        with the cron secret, or wait for Vercel Cron.
+      <div
+        className="glass-card border-amber-200 bg-amber-50/80 px-4 py-2.5 text-sm text-amber-900"
+        role="status"
+      >
+        No sync yet — check <code className="rounded bg-white/80 px-1 text-xs">/api/neon/health</code>{" "}
+        or cron.
       </div>
     );
   }
@@ -28,18 +26,18 @@ export function SyncPanel({ runs }: { runs: SyncRunRow[] }) {
   const ok = last.status === "success";
   return (
     <div
-      className={`glass-card px-4 py-3 text-sm ${
-        ok ? "border-emerald-500/20 text-emerald-100/90" : "border-red-500/25 text-red-200/90"
+      className={`glass-card px-4 py-2.5 text-sm ${
+        ok ? "border-emerald-200 bg-emerald-50/50 text-emerald-950" : "border-red-200 bg-red-50/60 text-red-950"
       }`}
+      role="status"
     >
-      <span className="font-medium">Last sync:</span>{" "}
-      <span className="text-zinc-300">{last.status}</span>
-      {" · "}
-      <span className="text-zinc-400">
-        target {last.targetDate.slice(0, 10)} · rows {last.rowsUpserted ?? "—"}
+      <span className="font-medium">{ok ? "Synced" : "Sync failed"}</span>
+      <span className="text-zinc-600">
+        {" · "}
+        {last.targetDate.slice(0, 10)} · {last.rowsUpserted ?? "—"} rows
       </span>
       {last.errorMessage ? (
-        <span className="mt-1 block text-red-300/90">{last.errorMessage}</span>
+        <span className="mt-1 block text-red-800">{last.errorMessage}</span>
       ) : null}
     </div>
   );

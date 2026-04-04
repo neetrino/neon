@@ -20,6 +20,13 @@ import type { ProjectRow } from "@/components/dashboard/types";
 import type { RechartsRow } from "@/components/dashboard/chart-data";
 import { formatAbbrev } from "@/components/dashboard/DashboardWidgets";
 
+const SELECT_CLASS =
+  "rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none focus:border-teal-600/40 focus:ring-2 focus:ring-teal-600/20";
+
+const CHART_GRID_STROKE = "rgba(24, 24, 27, 0.06)";
+const CHART_AXIS_LINE = "rgba(24, 24, 27, 0.12)";
+const TICK_FILL = "#71717a";
+
 export function UsageLineChartPanel({
   loading,
   rows,
@@ -50,22 +57,14 @@ export function UsageLineChartPanel({
   onRefresh: () => void;
 }) {
   return (
-    <section className="glass-card flex flex-col gap-4 p-5 sm:p-6">
-      <div className="rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-sm text-zinc-400">
-        <span className="text-zinc-500">Time series uses the same range: </span>
-        <span className="font-mono text-zinc-200">{rangeLabel}</span>
-        <span className="text-zinc-500">
-          . Each point is summed usage for that day or month; metric and project filter apply only
-          here.
-        </span>
-      </div>
-      <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center">
-        <label className="flex items-center gap-2 text-sm text-zinc-400">
-          <span className="whitespace-nowrap">Metric</span>
+    <section className="glass-card flex flex-col gap-4 p-4 sm:p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end">
+        <label className="flex min-w-[10rem] flex-col gap-1 text-xs font-medium text-zinc-500">
+          Metric
           <select
             value={metric}
             onChange={(e) => setMetric(e.target.value as NeonUsageMetricName)}
-            className="rounded-lg border border-white/10 bg-zinc-950/80 px-3 py-2 text-zinc-100"
+            className={SELECT_CLASS}
           >
             {NEON_USAGE_METRICS.map((m) => (
               <option key={m} value={m}>
@@ -74,25 +73,25 @@ export function UsageLineChartPanel({
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-2 text-sm text-zinc-400">
-          <span>Group</span>
+        <label className="flex min-w-[8rem] flex-col gap-1 text-xs font-medium text-zinc-500">
+          Step
           <select
             value={groupBy}
             onChange={(e) => setGroupBy(e.target.value as "day" | "month")}
-            className="rounded-lg border border-white/10 bg-zinc-950/80 px-3 py-2 text-zinc-100"
+            className={SELECT_CLASS}
           >
-            <option value="day">By day</option>
-            <option value="month">By month</option>
+            <option value="day">Daily</option>
+            <option value="month">Monthly</option>
           </select>
         </label>
-        <label className="flex min-w-[12rem] items-center gap-2 text-sm text-zinc-400">
-          <span>Project</span>
+        <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs font-medium text-zinc-500">
+          Project
           <select
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
-            className="w-full rounded-lg border border-white/10 bg-zinc-950/80 px-3 py-2 text-zinc-100"
+            className={SELECT_CLASS}
           >
-            <option value="">All projects</option>
+            <option value="">All</option>
             {projects.map((p) => (
               <option key={p.neonProjectId} value={p.neonProjectId}>
                 {p.name}
@@ -100,48 +99,52 @@ export function UsageLineChartPanel({
             ))}
           </select>
         </label>
-        <button
-          type="button"
-          onClick={() => void onRefresh()}
-          className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm font-medium text-violet-100 transition hover:bg-violet-500/20"
-        >
-          Refresh
-        </button>
+        <div className="flex flex-wrap items-end gap-2 lg:ml-auto">
+          <span className="hidden font-mono text-xs text-zinc-400 sm:inline">{rangeLabel}</span>
+          <button
+            type="button"
+            onClick={() => void onRefresh()}
+            className="rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-800 shadow-sm transition hover:bg-zinc-50"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
-      <div className="h-[380px] w-full pt-2">
+      <div className="h-[340px] w-full sm:h-[380px]">
         {loading ? (
-          <p className="text-sm text-zinc-500">Loading chart…</p>
+          <p className="text-sm text-zinc-500">Loading…</p>
         ) : rows.length === 0 ? (
-          <p className="text-sm text-zinc-500">
-            No snapshots in this range. Run a cron sync or check your Neon plan (consumption API
-            requires a supported billing plan).
-          </p>
+          <p className="text-sm text-zinc-500">No data in this range.</p>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={rows} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+            <LineChart data={rows} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+              <CartesianGrid stroke={CHART_GRID_STROKE} vertical={false} />
               <XAxis
                 dataKey="period"
-                tick={{ fill: "#71717a", fontSize: 11 }}
+                tick={{ fill: TICK_FILL, fontSize: 11 }}
                 tickLine={false}
-                axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                axisLine={{ stroke: CHART_AXIS_LINE }}
               />
               <YAxis
-                tick={{ fill: "#71717a", fontSize: 11 }}
+                tick={{ fill: TICK_FILL, fontSize: 11 }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(v) => formatAbbrev(Number(v))}
               />
               <Tooltip
                 contentStyle={{
-                  background: "rgba(14,14,20,0.95)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 12,
+                  background: "#ffffff",
+                  border: "1px solid rgba(24, 24, 27, 0.1)",
+                  borderRadius: 8,
+                  boxShadow: "0 4px 12px rgba(24, 24, 27, 0.08)",
                 }}
-                labelStyle={{ color: "#e4e4e7" }}
+                labelStyle={{ color: "#18181b", fontSize: 12 }}
+                itemStyle={{ color: "#3f3f46", fontSize: 12 }}
               />
-              <Legend />
+              <Legend
+                wrapperStyle={{ fontSize: 12, color: "#52525b", paddingTop: 8 }}
+              />
               {projectIds.map((id, i) => (
                 <Line
                   key={id}

@@ -35,67 +35,60 @@ export function ProjectTable({
 }) {
   return (
     <section className="glass-card overflow-hidden">
-      <div className="border-b border-white/10 px-5 py-4">
-        <h2 className="text-lg font-medium text-zinc-100">Projects &amp; period totals</h2>
-        <p className="text-sm text-zinc-500">
-          Numbers match summed Neon daily snapshots in the selected range. Consumption API is
-          per Neon <span className="text-zinc-400">project</span> (not each database). Compute
-          is <span className="text-zinc-400">CU·seconds</span>; there is no separate RAM line in
-          v2—storage columns use <span className="text-zinc-400">byte·month</span> units. Averages
-          divide by calendar days in the range.
-        </p>
+      <div className="border-b border-zinc-100 px-4 py-3 sm:px-5">
+        <h2 className="text-sm font-semibold text-zinc-900">Projects</h2>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1100px] text-left text-sm">
-          <thead className="bg-zinc-900/60 text-xs uppercase tracking-wider text-zinc-500">
+          <thead className="bg-zinc-50/80 text-xs font-medium text-zinc-500">
             <tr>
-              <th className="px-4 py-3 font-medium">Name</th>
-              <th className="px-4 py-3 font-medium">Project ID</th>
-              <th className="px-4 py-3 font-medium">Region</th>
-              <th className="px-4 py-3 font-medium">Last snap</th>
-              <th className="px-4 py-3 font-medium">Rows</th>
-              <th className="px-4 py-3 font-medium">CU·s total</th>
-              <th className="px-4 py-3 font-medium">CU·s / day</th>
-              <th className="px-4 py-3 font-medium">Storage Σ (B·mo)</th>
+              <th className="px-4 py-2.5">Name</th>
+              <th className="px-4 py-2.5">ID</th>
+              <th className="px-4 py-2.5">Region</th>
+              <th className="px-4 py-2.5">Last snap</th>
+              <th className="px-4 py-2.5">Rows</th>
+              <th className="px-4 py-2.5">CU·s</th>
+              <th className="px-4 py-2.5">CU·s/d</th>
+              <th className="px-4 py-2.5">Storage Σ</th>
               {TABLE_METRICS.map((m) => (
-                <th key={m} className="px-4 py-3 font-medium whitespace-nowrap">
+                <th key={m} className="px-4 py-2.5 whitespace-nowrap">
                   {NEON_USAGE_METRIC_LABELS[m]}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5 text-zinc-300">
+          <tbody className="divide-y divide-zinc-100 text-zinc-700">
             {projects.map((p) => {
               const u = aggregateFor(usageByProjectId, p.neonProjectId);
               const storageSum = u
                 ? formatTotalsIntegerString(sumStorageByteMonthStrings(u.totals).toString())
                 : "—";
               return (
-                <tr key={p.neonProjectId} className="hover:bg-zinc-800/40">
-                  <td className="px-4 py-3 font-medium text-zinc-100">{p.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-zinc-500">{p.neonProjectId}</td>
-                  <td className="px-4 py-3 text-zinc-500">{p.regionId ?? "—"}</td>
-                  <td className="px-4 py-3 text-zinc-400">{p.lastSnapshotDate ?? "—"}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-zinc-400">
+                <tr key={p.neonProjectId} className="hover:bg-zinc-50/80">
+                  <td className="px-4 py-2.5 font-medium text-zinc-900">{p.name}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-zinc-500">{p.neonProjectId}</td>
+                  <td className="px-4 py-2.5 text-zinc-500">{p.regionId ?? "—"}</td>
+                  <td className="px-4 py-2.5 text-zinc-600">{p.lastSnapshotDate ?? "—"}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-zinc-600">
                     {u ? String(u.snapshotRows) : usageByProjectId ? "0" : "…"}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-zinc-200">
+                  <td className="px-4 py-2.5 font-mono text-xs text-zinc-900">
                     {u
                       ? formatTotalsIntegerString(u.totals.compute_unit_seconds)
                       : usageByProjectId
                         ? "0"
                         : "…"}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-zinc-400">
+                  <td className="px-4 py-2.5 font-mono text-xs text-zinc-600">
                     {u
                       ? formatAvgPerDay(u.averagesPerCalendarDay.compute_unit_seconds)
                       : usageByProjectId
                         ? formatAvgPerDay(0)
                         : "…"}
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-zinc-200">{storageSum}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs text-zinc-800">{storageSum}</td>
                   {TABLE_METRICS.map((m) => (
-                    <td key={m} className="px-4 py-3 font-mono text-xs text-zinc-400">
+                    <td key={m} className="px-4 py-2.5 font-mono text-xs text-zinc-600">
                       {u
                         ? formatTotalsIntegerString(u.totals[m])
                         : usageByProjectId
@@ -110,8 +103,8 @@ export function ProjectTable({
         </table>
       </div>
       {calendarDays !== null ? (
-        <p className="border-t border-white/5 px-5 py-3 text-xs text-zinc-600">
-          Calendar days in range: {calendarDays} (used for CU·s/day and other /day averages).
+        <p className="border-t border-zinc-100 px-4 py-2 text-xs text-zinc-400 sm:px-5">
+          {calendarDays} days in range
         </p>
       ) : null}
     </section>

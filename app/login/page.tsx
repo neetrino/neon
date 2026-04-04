@@ -37,37 +37,36 @@ function LoginForm() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4">
-      <div className="glass-card w-full max-w-md p-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">
+      <div className="glass-card w-full max-w-sm p-8">
+        <h1 className="text-xl font-semibold tracking-tight text-zinc-900">
           <span className="text-gradient">Sign in</span>
         </h1>
-        <p className="mt-2 text-sm text-zinc-500">Dashboard password (set in environment).</p>
         {err === "config" ? (
-          <p className="mt-4 text-sm text-amber-300" role="alert">
-            Set <code className="text-xs">JWT_SECRET</code> when{" "}
-            <code className="text-xs">DASHBOARD_PASSWORD</code> is enabled.
+          <p className="mt-4 text-sm text-amber-800" role="alert">
+            Set <code className="text-xs">JWT_SECRET</code> with{" "}
+            <code className="text-xs">DASHBOARD_PASSWORD</code>.
           </p>
         ) : null}
         <form onSubmit={(e) => void submit(e)} className="mt-6 flex flex-col gap-4">
-          <label className="text-sm text-zinc-400">
+          <label className="text-xs font-medium text-zinc-500">
             Password
             <input
               type="password"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-zinc-950/80 px-3 py-2 text-zinc-100 outline-none ring-cyan-500/40 focus:ring-2"
+              className="mt-1.5 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none focus:border-teal-600/40 focus:ring-2 focus:ring-teal-600/20"
             />
           </label>
           {message ? (
-            <p className="text-sm text-red-300" role="alert">
+            <p className="text-sm text-red-700" role="alert">
               {message}
             </p>
           ) : null}
           <button
             type="submit"
             disabled={pending}
-            className="rounded-lg bg-gradient-to-r from-cyan-500/80 to-violet-500/80 py-2.5 text-sm font-semibold text-zinc-950 transition hover:opacity-95 disabled:opacity-50"
+            className="rounded-md bg-teal-600 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 disabled:opacity-50"
           >
             {pending ? "Signing in…" : "Continue"}
           </button>

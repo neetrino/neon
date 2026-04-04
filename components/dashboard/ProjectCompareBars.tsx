@@ -26,6 +26,9 @@ const BAR_SLOT_PX = 96;
 const CHART_HEIGHT_PX = 380;
 const CHART_MARGIN = { top: 28, right: 16, left: 8, bottom: 52 } as const;
 const CHART_MIN_INNER_WIDTH_PX = 520;
+const CHART_GRID_STROKE = "rgba(24, 24, 27, 0.06)";
+const CHART_AXIS_LINE = "rgba(24, 24, 27, 0.12)";
+const TICK_FILL = "#71717a";
 
 export type CompareBarDatum = {
   label: string;
@@ -65,27 +68,24 @@ function CompareTooltip({
     storageBn = 0n;
   }
   return (
-    <div className="max-w-xs rounded-xl border border-white/10 bg-zinc-950/95 px-3 py-2 text-xs text-zinc-200 shadow-lg">
-      <p className="font-medium text-zinc-100">{row.fullName}</p>
+    <div className="max-w-xs rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-700 shadow-lg">
+      <p className="font-medium text-zinc-900">{row.fullName}</p>
       <ul className="mt-2 space-y-1.5">
         <li>
-          <span className="text-zinc-500">Compute (CU·s), total</span>
-          <div className="font-mono text-zinc-100">
+          <span className="text-zinc-500">CU·s total</span>
+          <div className="font-mono text-zinc-900">
             {formatTotalsIntegerString(row.computeExact)}
           </div>
         </li>
         <li>
-          <span className="text-zinc-500">Compute (CU·s), avg / calendar day</span>
-          <div className="font-mono text-zinc-100">
+          <span className="text-zinc-500">CU·s / day</span>
+          <div className="font-mono text-zinc-900">
             {formatAvgBigIntPerDay(row.computeExact, calendarDays)}
           </div>
         </li>
         <li>
-          <span className="text-zinc-500">Storage (byte·month sum)</span>
-          <div className="font-mono text-zinc-100">{formatByteMonthSumScaled(storageBn)}</div>
-          <div className="mt-0.5 text-[10px] text-zinc-600">
-            Raw: {formatTotalsIntegerString(row.storageByteMoExact)} B·mo
-          </div>
+          <span className="text-zinc-500">Storage (byte·month)</span>
+          <div className="font-mono text-zinc-900">{formatByteMonthSumScaled(storageBn)}</div>
         </li>
       </ul>
     </div>
@@ -104,45 +104,37 @@ export function ProjectCompareBars({
   calendarDays: number;
 }) {
   if (data.length === 0) {
-    return (
-      <p className="text-sm text-zinc-500">
-        No project totals in this range for a bar comparison.
-      </p>
-    );
+    return <p className="text-sm text-zinc-500">Nothing to compare in this range.</p>;
   }
 
   const innerW = barChartWidthPx(data.length);
 
   return (
     <div className="overflow-x-auto pb-1 [-ms-overflow-style:auto] [scrollbar-gutter:stable]">
-      <p className="mb-2 text-xs text-zinc-500">
-        Bar height = compute (CU·s) for the same date range as below. Scroll horizontally to see
-        all projects (sorted by compute, highest first). Values on bars are CU·s (abbreviated).
-      </p>
       <div style={{ width: innerW, minWidth: "100%", height: CHART_HEIGHT_PX }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ ...CHART_MARGIN }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+            <CartesianGrid stroke={CHART_GRID_STROKE} vertical={false} />
             <XAxis
               dataKey="label"
-              tick={{ fill: "#71717a", fontSize: 10 }}
+              tick={{ fill: TICK_FILL, fontSize: 10 }}
               tickLine={false}
-              axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+              axisLine={{ stroke: CHART_AXIS_LINE }}
               interval={0}
               angle={-32}
               textAnchor="end"
               height={48}
             />
             <YAxis
-              tick={{ fill: "#71717a", fontSize: 11 }}
+              tick={{ fill: TICK_FILL, fontSize: 11 }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v) => formatAbbrev(Number(v))}
               label={{
-                value: "CU·s (total in range)",
+                value: "CU·s",
                 angle: -90,
                 position: "insideLeft",
-                fill: "#71717a",
+                fill: TICK_FILL,
                 fontSize: 11,
               }}
             />
@@ -157,7 +149,7 @@ export function ProjectCompareBars({
               <LabelList
                 dataKey="compute"
                 position="top"
-                fill="#a1a1aa"
+                fill={TICK_FILL}
                 fontSize={10}
                 formatter={(v: number) => formatAbbrev(v)}
               />
