@@ -14,7 +14,9 @@ export function SyncPanel({ runs }: { runs: SyncRunRow[] }) {
   if (!last) {
     return (
       <div className="glass-card border-amber-500/20 px-4 py-3 text-sm text-amber-200/90">
-        No sync runs recorded yet. After deploy, trigger{" "}
+        No sync runs recorded yet. Confirm API access with{" "}
+        <code className="rounded bg-black/30 px-1 py-0.5 text-xs">GET /api/neon/health</code>
+        , then trigger{" "}
         <code className="rounded bg-black/30 px-1 py-0.5 text-xs">
           GET /api/cron/sync-neon-usage
         </code>{" "}
