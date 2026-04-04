@@ -6,8 +6,10 @@ import {
   type NeonUsageMetricName,
 } from '@/lib/constants/neon-metrics';
 import {
+  rangeCurrentBillingPeriod,
   rangeCurrentMonthUtc,
   rangeLastDays,
+  rangePreviousBillingPeriod,
   rangePreviousMonthUtc,
   utcToday,
 } from '@/components/dashboard/date-presets';
@@ -15,9 +17,10 @@ import { isValidIsoDate, normalizeRange } from '@/components/dashboard/date-rang
 import type { ProjectRow, Provider } from '@/components/dashboard/types';
 
 const PRESETS = [
+  { label: 'Current billing period', getRange: rangeCurrentBillingPeriod },
+  { label: 'Previous billing period', getRange: rangePreviousBillingPeriod },
   { label: 'Current month', getRange: rangeCurrentMonthUtc },
   { label: 'Previous month', getRange: rangePreviousMonthUtc },
-  { label: '7 days', getRange: () => rangeLastDays(7) },
   { label: '30 days', getRange: () => rangeLastDays(30) },
   { label: '60 days', getRange: () => rangeLastDays(60) },
 ] as const;

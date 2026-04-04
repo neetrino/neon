@@ -221,14 +221,18 @@ export async function GET(request: Request) {
 
   const days = calendarDaysInclusive(fromDate, toDate);
 
-  const [neonResult, vercelProjects, invoices] = await Promise.all([
+  const [neonResult, vercelProjects, teamCharges] = await Promise.all([
     provider !== 'vercel' ? buildNeonProjects(fromDate, toDate, days) : null,
     provider !== 'neon' ? buildVercelProjects(fromDate, toDate) : null,
-    // Invoices issued within the selected date range (issuedAt covers the period ending on that date)
+    // Team-level charges (no project): includes Pro plan subscription + any unattributed usage.
+    // Using daily FOCUS data instead of invoices so the fee is attributed to the correct
+    // billing period (the one the charge actually belongs to, not when the invoice was issued).
     provider !== 'neon'
-      ? prisma.vercelInvoice.findMany({
-          where: { issuedAt: { gte: fromDate, lte: new Date(toDate.getTime() + 86_400_000) } },
-          orderBy: { issuedAt: 'asc' },
+      ? prisma.vercelDailyCharge.findMany({
+          where: {
+            chargeDate: { gte: fromDate, lte: toDate },
+            vercelProjectId: '',
+          },
         })
       : null,
   ]);
@@ -256,10 +260,15 @@ export async function GET(request: Request) {
     0,
   );
 
-  // Use authoritative invoice data for plan subscription fee
-  const vercelPlanUsd = (invoices ?? []).reduce((sum, inv) => sum + Number(inv.platformFeeUsd), 0);
+  // Plan fee and team-level charges from daily FOCUS data (correct billing period attribution).
+  const vercelPlanUsd = (teamCharges ?? [])
+    .filter((r) => r.serviceCategory === 'plan')
+    .reduce((sum, r) => sum + Number(r.billedCost), 0);
+  const vercelTeamOtherUsd = (teamCharges ?? [])
+    .filter((r) => r.serviceCategory !== 'plan')
+    .reduce((sum, r) => sum + Number(r.billedCost), 0);
 
-  const vercelTotalUsd = vercelProjectsTotal + vercelPlanUsd;
+  const vercelTotalUsd = vercelProjectsTotal + vercelPlanUsd + vercelTeamOtherUsd;
 
   return NextResponse.json({
     from,
@@ -277,7 +286,7 @@ export async function GET(request: Request) {
       vercelFunctionsPlusEdgeUsd,
       vercelBuildUsd,
       vercelPlanUsd,
-      vercelInvoiceCount: (invoices ?? []).length,
+      vercelTeamOtherUsd,
     },
     projects: allProjects,
   });

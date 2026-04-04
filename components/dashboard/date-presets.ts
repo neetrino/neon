@@ -1,3 +1,43 @@
+/** Vercel bills on the 4th of each month — billing period is 4th → 3rd. */
+const VERCEL_BILLING_DAY = 4;
+
+/** Current Vercel billing period: from the most recent 4th to today. */
+export function rangeCurrentBillingPeriod(): { from: string; to: string } {
+  const today = utcToday();
+  const [y, m, d] = today.split('-').map(Number);
+  let fromYear = y;
+  let fromMonth = m;
+  if (d < VERCEL_BILLING_DAY) {
+    // Before the 4th: current period started in the previous month
+    if (m === 1) {
+      fromYear = y - 1;
+      fromMonth = 12;
+    } else {
+      fromMonth = m - 1;
+    }
+  }
+  const from = `${fromYear}-${String(fromMonth).padStart(2, '0')}-${String(VERCEL_BILLING_DAY).padStart(2, '0')}`;
+  return { from, to: today };
+}
+
+/** Previous Vercel billing period: the full 4th→3rd period before the current one. */
+export function rangePreviousBillingPeriod(): { from: string; to: string } {
+  const current = rangeCurrentBillingPeriod();
+  const [fy, fm] = current.from.split('-').map(Number);
+  // Period ends the day before the current period started
+  const toDate = new Date(Date.UTC(fy, fm - 1, VERCEL_BILLING_DAY - 1));
+  // Period starts on BILLING_DAY of the month before that
+  let pYear = fy;
+  let pMonth = fm - 1;
+  if (pMonth < 1) {
+    pYear = fy - 1;
+    pMonth = 12;
+  }
+  const from = `${pYear}-${String(pMonth).padStart(2, '0')}-${String(VERCEL_BILLING_DAY).padStart(2, '0')}`;
+  const to = toDate.toISOString().slice(0, 10);
+  return { from, to };
+}
+
 /** Inclusive UTC date range as YYYY-MM-DD. */
 export function rangeLastDays(days: number): { from: string; to: string } {
   const end = utcToday();

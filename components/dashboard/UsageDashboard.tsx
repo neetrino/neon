@@ -15,6 +15,7 @@ import { ProjectTable } from '@/components/dashboard/ProjectTable';
 import { UsageLineChartPanel } from '@/components/dashboard/UsageLineChartPanel';
 import { VercelCostLineChart } from '@/components/dashboard/VercelCostLineChart';
 import { VercelBreakdownBarChart } from '@/components/dashboard/VercelBreakdownBarChart';
+import { VercelProjectStackedBar } from '@/components/dashboard/VercelProjectStackedBar';
 import type {
   NeonUsageAggregate,
   ProjectRow,
@@ -421,12 +422,17 @@ export function UsageDashboard() {
 
         {showVercelCharts ? (
           <>
-            <VercelCostLineChart
+            <VercelProjectStackedBar
               loading={loading}
               points={vercelSeries?.costByProject ?? []}
               projectNames={vercelSeries?.projectNames ?? {}}
             />
             <VercelBreakdownBarChart loading={loading} breakdown={vercelSeries?.breakdown ?? []} />
+            <VercelCostLineChart
+              loading={loading}
+              points={vercelSeries?.costByProject ?? []}
+              projectNames={vercelSeries?.projectNames ?? {}}
+            />
           </>
         ) : null}
 

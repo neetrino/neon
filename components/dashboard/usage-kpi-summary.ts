@@ -76,5 +76,7 @@ export function costSummaryFromProjects(
     vercelBandwidthUsd,
     vercelFunctionsPlusEdgeUsd,
     vercelBuildUsd,
+    vercelPlanUsd: 0,
+    vercelTeamOtherUsd: 0,
   };
 }

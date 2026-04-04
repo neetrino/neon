@@ -94,10 +94,10 @@ export type CostSummary = {
   vercelBandwidthUsd: number;
   vercelFunctionsPlusEdgeUsd: number;
   vercelBuildUsd: number;
-  /** Pro/Enterprise plan subscription fee from invoices (authoritative). */
+  /** Pro plan subscription fee from daily FOCUS charges (team-level, serviceCategory=plan). */
   vercelPlanUsd: number;
-  /** Number of invoices overlapping the selected date range. */
-  vercelInvoiceCount: number;
+  /** Other team-level charges not attributed to a specific project (e.g. unassigned bandwidth). */
+  vercelTeamOtherUsd: number;
 };
 
 export type VercelBreakdownPoint = {

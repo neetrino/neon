@@ -148,10 +148,8 @@ export function UsageKpiStrip({
           />
         </div>
         <p className="mt-4 text-xs leading-relaxed text-zinc-500">
-          {formatRangeFooter(fromIso, toIso)} Plan fee is from{' '}
-          {loading ? '…' : costSummary.vercelInvoiceCount} Vercel invoice
-          {!loading && costSummary.vercelInvoiceCount !== 1 ? 's' : ''}; usage charges from daily
-          FOCUS data.
+          {formatRangeFooter(fromIso, toIso)} All charges from daily FOCUS data — attributed to the
+          billing period they belong to (Vercel bills 4th→3rd each month).
         </p>
       </section>
     );
