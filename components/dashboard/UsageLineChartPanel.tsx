@@ -172,6 +172,7 @@ export function UsageLineChartPanel({
                     width={48}
                   />
                   <Tooltip
+                    wrapperStyle={{ pointerEvents: "auto" }}
                     content={
                       <UsageTooltipContent
                         rankedProjectIds={rankedProjectIds}
