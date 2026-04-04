@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { filterIgnoredProjectIds } from "@/lib/constants/ignored-projects";
 
 export async function GET() {
   const projects = await prisma.neonProject.findMany({
@@ -20,5 +21,5 @@ export async function GET() {
     lastSnapshotDate: p.snapshots[0]?.snapshotDate.toISOString().slice(0, 10) ?? null,
   }));
 
-  return NextResponse.json({ projects: payload });
+  return NextResponse.json({ projects: filterIgnoredProjectIds(payload) });
 }

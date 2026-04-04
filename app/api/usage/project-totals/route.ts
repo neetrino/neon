@@ -5,6 +5,7 @@ import { getEnv } from "@/lib/env";
 import { parseIsoDateOnly } from "@/lib/dates";
 import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
 import { NEON_USAGE_METRICS } from "@/lib/constants/neon-metrics";
+import { isIgnoredProjectId } from "@/lib/constants/ignored-projects";
 import { readMetricValue } from "@/lib/usage/metric-field";
 import {
   applyPublicTransferAllowance,
@@ -87,6 +88,9 @@ export async function GET(request: Request) {
 
   for (const row of rows) {
     const id = row.neonProjectId;
+    if (isIgnoredProjectId(id)) {
+      continue;
+    }
     let acc = byProject.get(id);
     if (!acc) {
       acc = {

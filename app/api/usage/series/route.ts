@@ -6,6 +6,7 @@ import {
   NEON_USAGE_METRICS,
   type NeonUsageMetricName,
 } from "@/lib/constants/neon-metrics";
+import { isIgnoredProjectId } from "@/lib/constants/ignored-projects";
 import { metricToSafeNumber, readMetricValue } from "@/lib/usage/metric-field";
 import {
   BILLING_HOURS_PER_MONTH,
@@ -82,6 +83,9 @@ export async function GET(request: Request) {
   const map = new Map<string, Point>();
 
   for (const row of rows) {
+    if (isIgnoredProjectId(row.neonProjectId)) {
+      continue;
+    }
     const day = row.snapshotDate.toISOString().slice(0, 10);
     const period = groupBy === "month" ? monthKey(day) : day;
     const periodHours = groupBy === "month" ? daysInMonthFromKey(period) * 24 : 24;

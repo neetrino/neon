@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { fetchConsumptionHistoryV2 } from "@/lib/neon/fetch-consumption-v2";
 import { listAllNeonProjects } from "@/lib/neon/list-projects";
 import { addUtcDays, parseIsoDateOnly, toUtcDateOnly } from "@/lib/dates";
+import { isIgnoredProjectId } from "@/lib/constants/ignored-projects";
 import { mapMetricsToSnapshot } from "@/lib/sync/map-metrics";
 import { withBackoff } from "@/lib/sync/retry";
 import { logger } from "@/lib/logger";
@@ -54,6 +55,7 @@ export async function syncUsageForUtcDay(params: SyncParams): Promise<{ rows: nu
   const projects = await withBackoff("listProjects", () =>
     listAllNeonProjects({ apiKey: params.apiKey, orgId: params.orgId }),
   );
+  const listedProjectIds = new Set(projects.map((project) => project.id));
 
   for (const p of projects) {
     await upsertProjectFromList(p.id, p.name, p.region_id);
@@ -74,6 +76,9 @@ export async function syncUsageForUtcDay(params: SyncParams): Promise<{ rows: nu
   const targetKey = params.targetDay.toISOString().slice(0, 10);
 
   for (const proj of consumptionProjects) {
+    if (isIgnoredProjectId(proj.project_id) || !listedProjectIds.has(proj.project_id)) {
+      continue;
+    }
     await ensureProjectExists(proj.project_id);
 
     for (const period of proj.periods) {
