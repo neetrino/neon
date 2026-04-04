@@ -70,14 +70,14 @@ function UsageTooltipContent({
   return (
     <div className="w-[20rem] rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-700 shadow-xl">
       <p className="font-semibold text-zinc-900">{label}</p>
-      <p className="mt-0.5 text-[11px] text-zinc-500">Top 10 by estimated cost</p>
-      <ul className="mt-2 space-y-1">
-        {rankedProjectIds.slice(0, 10).map((id) => {
+      <p className="mt-0.5 text-[11px] text-zinc-500">Projects sorted by estimated cost (desc)</p>
+      <ul className={`mt-2 space-y-1 overflow-y-auto pr-1 ${SIDE_LIST_MAX_HEIGHT}`}>
+        {rankedProjectIds.map((id, index) => {
           const stats = projectStatsById[id];
           return (
             <li key={id} className="rounded-md border border-zinc-100 bg-zinc-50/70 px-2 py-1.5">
               <div className="truncate font-medium text-zinc-900" title={projectNames[id] ?? id}>
-                {projectNames[id] ?? id}
+                {index + 1}. {projectNames[id] ?? id}
               </div>
               <div className="font-mono text-[11px] text-zinc-600">
                 now {formatAbbrev(valueById[id] ?? 0)} | cost {formatUsd(stats?.totalCostUsd ?? 0)} | cpu{" "}
@@ -87,16 +87,6 @@ function UsageTooltipContent({
           );
         })}
       </ul>
-      <div className={`mt-2 space-y-1 overflow-y-auto border-t border-zinc-200 pt-2 ${SIDE_LIST_MAX_HEIGHT}`}>
-        {rankedProjectIds.map((id) => {
-          const stats = projectStatsById[id];
-          return (
-            <div key={`all-${id}`} className="truncate text-[11px] text-zinc-600" title={projectNames[id] ?? id}>
-              {projectNames[id] ?? id}: {formatAbbrev(valueById[id] ?? 0)} | {formatUsd(stats?.totalCostUsd ?? 0)}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -217,44 +207,10 @@ export function UsageLineChartPanel({
 
             <aside className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Projects in chart</p>
-              <p className="mt-1 text-[11px] text-zinc-500">Sorted by estimated cost (Top 10 first)</p>
-              <ul className="mt-2 space-y-1.5">
-                {rankedProjectIds.slice(0, 10).map((id) => {
-                  const isFocused = focusedProjectId === id;
-                  return (
-                    <li key={`top-${id}`}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedProjectId((current) => (current === id ? "" : id))}
-                        onMouseEnter={() => setActiveProjectId(id)}
-                        onMouseLeave={() => setActiveProjectId("")}
-                        className={`flex w-full items-start justify-between gap-2 rounded-md border px-2 py-1.5 text-left transition ${
-                          isFocused
-                            ? "border-teal-300 bg-teal-50 text-zinc-900"
-                            : "border-zinc-200 bg-zinc-50/60 text-zinc-700 hover:bg-zinc-100"
-                        }`}
-                      >
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-xs font-medium">{projectNames[id] ?? id}</span>
-                          <span className="font-mono text-[11px] text-zinc-500">
-                            {formatUsd(projectStatsById[id]?.totalCostUsd ?? 0)} |{" "}
-                            {(projectStatsById[id]?.computeCuHours ?? 0).toFixed(2)} CU-hrs
-                          </span>
-                        </span>
-                        <span
-                          className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: lineColorById[id] }}
-                          aria-hidden
-                        />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              <div className={`mt-2 overflow-y-auto border-t border-zinc-200 pt-2 ${SIDE_LIST_MAX_HEIGHT}`}>
-                <ul className="space-y-1">
-                  {rankedProjectIds.map((id) => {
+              <p className="mt-1 text-[11px] text-zinc-500">One sorted list (scroll for more)</p>
+              <div className={`mt-2 overflow-y-auto pr-1 ${SIDE_LIST_MAX_HEIGHT}`}>
+                <ul className="space-y-1.5">
+                  {rankedProjectIds.map((id, index) => {
                     const isFocused = focusedProjectId === id;
                     const isDimmed = Boolean(focusedProjectId) && !isFocused;
                     return (
@@ -264,13 +220,27 @@ export function UsageLineChartPanel({
                           onClick={() => setSelectedProjectId((current) => (current === id ? "" : id))}
                           onMouseEnter={() => setActiveProjectId(id)}
                           onMouseLeave={() => setActiveProjectId("")}
-                          className={`flex w-full items-center justify-between gap-2 rounded px-2 py-1 text-left text-[11px] transition ${
-                            isFocused ? "bg-teal-50 text-zinc-900" : "text-zinc-600 hover:bg-zinc-100/80"
+                          className={`flex w-full items-start justify-between gap-2 rounded-md border px-2 py-1.5 text-left transition ${
+                            isFocused
+                              ? "border-teal-300 bg-teal-50 text-zinc-900"
+                              : "border-zinc-200 bg-zinc-50/60 text-zinc-700 hover:bg-zinc-100"
                           }`}
                           style={{ opacity: isDimmed ? 0.55 : 1 }}
                         >
-                          <span className="truncate">{projectNames[id] ?? id}</span>
-                          <span className="font-mono">{formatUsd(projectStatsById[id]?.totalCostUsd ?? 0)}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-xs font-medium">
+                              {index + 1}. {projectNames[id] ?? id}
+                            </span>
+                            <span className="font-mono text-[11px] text-zinc-500">
+                              {formatUsd(projectStatsById[id]?.totalCostUsd ?? 0)} |{" "}
+                              {(projectStatsById[id]?.computeCuHours ?? 0).toFixed(2)} CU-hrs
+                            </span>
+                          </span>
+                          <span
+                            className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full"
+                            style={{ backgroundColor: lineColorById[id] }}
+                            aria-hidden
+                          />
                         </button>
                       </li>
                     );
