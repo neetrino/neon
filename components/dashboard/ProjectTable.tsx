@@ -94,9 +94,17 @@ export function ProjectTable({
         {sortedProjects.length === 0 ? (
           <p className="text-sm text-zinc-500">No projects yet.</p>
         ) : view === 'cards' ? (
-          <ProjectTableCards projects={sortedProjects} usageByProjectId={usageByProjectId} showProviderBadge={showProviderBadge} />
+          <ProjectTableCards
+            projects={sortedProjects}
+            usageByProjectId={usageByProjectId}
+            showProviderBadge={showProviderBadge}
+          />
         ) : (
-          <ProjectTableList projects={sortedProjects} usageByProjectId={usageByProjectId} showProviderBadge={showProviderBadge} />
+          <ProjectTableList
+            projects={sortedProjects}
+            usageByProjectId={usageByProjectId}
+            showProviderBadge={showProviderBadge}
+          />
         )}
       </div>
 

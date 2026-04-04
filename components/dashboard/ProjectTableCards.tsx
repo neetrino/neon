@@ -43,13 +43,7 @@ function ProviderBadge({ provider }: { provider: 'neon' | 'vercel' }) {
   );
 }
 
-function VercelCard({
-  p,
-  u,
-}: {
-  p: ProjectRow;
-  u: ProjectUsageAggregate | undefined;
-}) {
+function VercelCard({ p, u }: { p: ProjectRow; u: ProjectUsageAggregate | undefined }) {
   const totalUsd = u?.vercelCost?.totalUsd ?? null;
   const bwUsd = u?.vercelCost?.bandwidthUsd ?? null;
   const fnUsd = u?.vercelCost?.functionUsd ?? null;
@@ -84,11 +78,7 @@ function VercelCard({
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="grid grid-cols-2 gap-3">
-          <Stat
-            label="Total charges"
-            value={totalUsd !== null ? formatUsd(totalUsd) : '…'}
-            large
-          />
+          <Stat label="Total charges" value={totalUsd !== null ? formatUsd(totalUsd) : '…'} large />
           <Stat label="Bandwidth $" value={bwUsd !== null ? formatUsd(bwUsd) : '—'} />
           <Stat label="Functions $" value={fnUsd !== null ? formatUsd(fnUsd) : '—'} />
           <Stat label="Edge Functions $" value={edgeUsd !== null ? formatUsd(edgeUsd) : '—'} />

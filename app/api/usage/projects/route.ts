@@ -54,10 +54,9 @@ export async function GET(request: Request) {
     provider: 'vercel' as const,
   }));
 
-  const projects = [
-    ...filterIgnoredProjectIds(neonPayload),
-    ...vercelPayload,
-  ].sort((a, b) => a.name.localeCompare(b.name));
+  const projects = [...filterIgnoredProjectIds(neonPayload), ...vercelPayload].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
 
   return NextResponse.json({ projects });
 }

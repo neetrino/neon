@@ -76,9 +76,7 @@ function SpendingTooltip({
   );
 }
 
-export function buildSpendingBarData(
-  projects: ProjectUsageAggregate[],
-): SpendingBarDatum[] {
+export function buildSpendingBarData(projects: ProjectUsageAggregate[]): SpendingBarDatum[] {
   const byName = new Map<string, SpendingBarDatum>();
 
   for (const p of projects) {

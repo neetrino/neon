@@ -12,8 +12,8 @@ const envSchema = z
     JWT_SECRET: z.string().min(32).optional(),
     APP_URL: z.string().url().optional(),
     NEON_PRICING_PLAN: z.enum(['launch', 'scale']).default('launch'),
-  VERCEL_TOKEN: z.string().min(1).optional(),
-  VERCEL_TEAM_ID: z.string().min(1).optional(),
+    VERCEL_TOKEN: z.string().min(1).optional(),
+    VERCEL_TEAM_ID: z.string().min(1).optional(),
   })
   .superRefine((val, ctx) => {
     if (val.DASHBOARD_PASSWORD && !val.JWT_SECRET) {
