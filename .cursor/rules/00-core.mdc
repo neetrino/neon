@@ -12,7 +12,7 @@ Other `.mdc` files apply by **globs** and task. If a rule seems missing, check t
 
 If not decided: read [`99-project-size.mdc`](99-project-size.mdc), propose A/B/C with rationale, get confirmation, then replace the line below with e.g. `Size: B — medium, layout: feature-based`.
 
-`Size: NOT SET — follow 99-project-size.mdc`
+`Size: A — small, layout: app + components + lib (Neon usage dashboard)`
 
 ## Start of work
 
