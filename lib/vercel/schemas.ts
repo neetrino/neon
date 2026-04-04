@@ -23,23 +23,6 @@ export type VercelProject = z.infer<typeof vercelProjectSchema>;
 export type VercelProjectsResponse = z.infer<typeof vercelProjectsResponseSchema>;
 
 // ---------------------------------------------------------------------------
-// Normalized internal charge type
-// Consumed by sync-vercel-month.ts › accumulateCharge
-// ---------------------------------------------------------------------------
-
-export const vercelChargeSchema = z.object({
-  /** ServiceName from the FOCUS API (e.g. "Bandwidth", "Fluid Provisioned Memory") */
-  resource: z.string(),
-  quantity: z.number().default(0),
-  /** Billed USD for this line item */
-  price: z.number().default(0),
-  projectId: z.string().nullable().optional(),
-  projectName: z.string().nullable().optional(),
-});
-
-export type VercelCharge = z.infer<typeof vercelChargeSchema>;
-
-// ---------------------------------------------------------------------------
 // FOCUS billing API format — full v1.3 fields
 // Endpoint: GET /v1/billing/charges?teamId=...&from=ISO_DATETIME&to=ISO_DATETIME
 // Response: NDJSON – one JSON object per line

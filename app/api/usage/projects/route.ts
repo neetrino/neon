@@ -24,19 +24,26 @@ export async function GET(request: Request) {
           },
         })
       : [],
-    provider !== 'neon'
-      ? prisma.vercelProject.findMany({
-          orderBy: { name: 'asc' },
-          include: {
-            snapshots: {
-              orderBy: { snapshotDate: 'desc' },
-              take: 1,
-              select: { snapshotDate: true },
-            },
-          },
-        })
-      : [],
+    provider !== 'neon' ? prisma.vercelProject.findMany({ orderBy: { name: 'asc' } }) : [],
   ]);
+
+  // For each vercel project, find the latest charge date from vercel_daily_charges
+  const vercelProjectIds = Array.isArray(vercelProjects)
+    ? vercelProjects.map((p) => p.vercelProjectId)
+    : [];
+
+  const latestCharges =
+    vercelProjectIds.length > 0
+      ? await prisma.vercelDailyCharge.groupBy({
+          by: ['vercelProjectId'],
+          where: { vercelProjectId: { in: vercelProjectIds } },
+          _max: { chargeDate: true },
+        })
+      : [];
+
+  const latestChargeByProject = new Map(
+    latestCharges.map((r) => [r.vercelProjectId, r._max.chargeDate]),
+  );
 
   const neonPayload = (Array.isArray(neonProjects) ? neonProjects : []).map((p) => ({
     neonProjectId: p.neonProjectId,
@@ -50,7 +57,8 @@ export async function GET(request: Request) {
     neonProjectId: p.vercelProjectId,
     name: p.name,
     regionId: null,
-    lastSnapshotDate: p.snapshots[0]?.snapshotDate.toISOString().slice(0, 10) ?? null,
+    lastSnapshotDate:
+      latestChargeByProject.get(p.vercelProjectId)?.toISOString().slice(0, 10) ?? null,
     provider: 'vercel' as const,
   }));
 
