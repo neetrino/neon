@@ -23,33 +23,41 @@ export type VercelProject = z.infer<typeof vercelProjectSchema>;
 export type VercelProjectsResponse = z.infer<typeof vercelProjectsResponseSchema>;
 
 // ---------------------------------------------------------------------------
-// Billing charges
-// Vercel REST API: GET /v2/teams/{teamId}/billing/charges
-// Each charge has a resource type, a per-project breakdown, and USD totals.
+// Normalized internal charge type
+// Consumed by sync-vercel-month.ts › accumulateCharge
 // ---------------------------------------------------------------------------
 
 export const vercelChargeSchema = z.object({
-  /** e.g. "Bandwidth", "Serverless Function Execution", "Edge Function Execution",
-   *  "Build Execution", "Image Optimization", "Edge Config" */
+  /** ServiceName from the FOCUS API (e.g. "Bandwidth", "Fluid Provisioned Memory") */
   resource: z.string(),
   quantity: z.number().default(0),
-  /** Unit label, e.g. "GB", "GB-Hrs", "CPU-ms", "Minutes", "Source Images" */
-  unit: z.string().optional(),
-  /** USD price per unit */
-  unitPrice: z.number().default(0),
-  /** Total USD for this charge line */
+  /** Billed USD for this line item */
   price: z.number().default(0),
   projectId: z.string().nullable().optional(),
   projectName: z.string().nullable().optional(),
-  period: z.object({
-    start: z.number(),
-    end: z.number(),
-  }),
-});
-
-export const vercelBillingResponseSchema = z.object({
-  charges: z.array(vercelChargeSchema),
 });
 
 export type VercelCharge = z.infer<typeof vercelChargeSchema>;
-export type VercelBillingResponse = z.infer<typeof vercelBillingResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// FOCUS billing API format
+// Endpoint: GET /v1/billing/charges?teamId=...&from=YYYY-MM-DD&to=YYYY-MM-DD
+// Response: NDJSON – one JSON object per line
+// ---------------------------------------------------------------------------
+
+export const vercelFocusChargeSchema = z
+  .object({
+    ServiceName: z.string(),
+    ConsumedQuantity: z.number().default(0),
+    /** Actual amount charged (after committed discounts applied) */
+    BilledCost: z.number().default(0),
+    Tags: z
+      .object({
+        ProjectId: z.string().optional(),
+        ProjectName: z.string().optional(),
+      })
+      .default({}),
+  })
+  .passthrough();
+
+export type VercelFocusCharge = z.infer<typeof vercelFocusChargeSchema>;

@@ -53,7 +53,12 @@ function accumulateCharge(acc: ProjectAccumulator, charge: VercelCharge): void {
   if (resource.includes('bandwidth')) {
     acc.bandwidthGb += charge.quantity;
     acc.bandwidthUsd += charge.price;
-  } else if (resource.includes('serverless function') || resource.includes('function execution')) {
+  } else if (
+    resource.includes('serverless function') ||
+    resource.includes('function execution') ||
+    // "Fluid Provisioned Memory" / "Fluid Provisioned vCPU" — Vercel Fluid compute
+    resource.includes('fluid')
+  ) {
     acc.functionGbHours += charge.quantity;
     acc.functionUsd += charge.price;
   } else if (resource.includes('edge function')) {
