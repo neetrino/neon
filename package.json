@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:push": "prisma db push"
+    "db:push": "prisma db push",
+    "usage:backfill": "tsx scripts/backfill-neon-usage.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
@@ -32,6 +33,7 @@
     "postcss": "^8.5.6",
     "prisma": "^6.19.0",
     "tailwindcss": "^4.1.11",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.2"
   },
   "engines": {
