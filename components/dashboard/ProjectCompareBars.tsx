@@ -13,14 +13,6 @@ import {
 } from "recharts";
 import { SERIES_COLORS } from "@/components/dashboard/chart-colors";
 import { formatAbbrev } from "@/components/dashboard/DashboardWidgets";
-import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
-import {
-  bigintToChartSafeNumber,
-  formatAvgBigIntPerDay,
-  formatByteMonthSumScaled,
-  formatTotalsIntegerString,
-  sumStorageByteMonthStrings,
-} from "@/components/dashboard/usage-display-format";
 
 /** Target ~10 projects visible before horizontal scroll at ~960px viewport. */
 const BAR_SLOT_PX = 96;
@@ -34,9 +26,8 @@ const TICK_FILL = "#71717a";
 export type CompareBarDatum = {
   label: string;
   fullName: string;
-  compute: number;
-  computeExact: string;
-  storageByteMoExact: string;
+  usageCuHours: number;
+  estimatedCostUsd: number;
 };
 
 type TooltipPayloadItem = {
@@ -49,11 +40,11 @@ type TooltipPayloadItem = {
 function CompareTooltip({
   active,
   payload,
-  calendarDays,
+  metricMode,
 }: {
   active?: boolean;
   payload?: TooltipPayloadItem[];
-  calendarDays: number;
+  metricMode: "usage" | "cost";
 }) {
   if (!active || !payload?.length) {
     return null;
@@ -62,31 +53,16 @@ function CompareTooltip({
   if (!row) {
     return null;
   }
-  let storageBn = 0n;
-  try {
-    storageBn = BigInt(row.storageByteMoExact ?? "0");
-  } catch {
-    storageBn = 0n;
-  }
+  const value = metricMode === "usage" ? row.usageCuHours : row.estimatedCostUsd;
   return (
     <div className="max-w-xs rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-xs text-zinc-700 shadow-xl">
       <p className="font-semibold text-zinc-900">{row.fullName}</p>
       <ul className="mt-2 space-y-1.5">
         <li>
-          <span className="text-zinc-500">CU·s total</span>
+          <span className="text-zinc-500">{metricMode === "usage" ? "Compute (CU-hrs)" : "Estimated cost ($)"}</span>
           <div className="font-mono text-sm text-zinc-900">
-            {formatTotalsIntegerString(row.computeExact)}
+            {metricMode === "usage" ? value.toFixed(2) : `$${value.toFixed(2)}`}
           </div>
-        </li>
-        <li>
-          <span className="text-zinc-500">CU·s / day</span>
-          <div className="font-mono text-sm text-zinc-900">
-            {formatAvgBigIntPerDay(row.computeExact, calendarDays)}
-          </div>
-        </li>
-        <li>
-          <span className="text-zinc-500">Storage (byte·month)</span>
-          <div className="font-mono text-sm text-zinc-900">{formatByteMonthSumScaled(storageBn)}</div>
         </li>
       </ul>
     </div>
@@ -99,10 +75,10 @@ function barChartWidthPx(count: number): number {
 
 export function ProjectCompareBars({
   data,
-  calendarDays,
+  metricMode,
 }: {
   data: CompareBarDatum[];
-  calendarDays: number;
+  metricMode: "usage" | "cost";
 }) {
   if (data.length === 0) {
     return <p className="text-sm text-zinc-500">Nothing to compare in this range.</p>;
@@ -132,17 +108,17 @@ export function ProjectCompareBars({
               axisLine={false}
               tickFormatter={(v) => formatAbbrev(Number(v))}
               label={{
-                value: "CU·s",
+                value: metricMode === "usage" ? "CU-hrs" : "USD",
                 angle: -90,
                 position: "insideLeft",
                 fill: TICK_FILL,
                 fontSize: 11,
               }}
             />
-            <Tooltip content={<CompareTooltip calendarDays={calendarDays} />} cursor={{ fill: "rgba(24,24,27,0.04)" }} />
+            <Tooltip content={<CompareTooltip metricMode={metricMode} />} cursor={{ fill: "rgba(24,24,27,0.04)" }} />
             <Bar
-              dataKey="compute"
-              name="Compute (CU·s)"
+              dataKey={metricMode === "usage" ? "usageCuHours" : "estimatedCostUsd"}
+              name={metricMode === "usage" ? "Compute (CU-hrs)" : "Estimated cost ($)"}
               radius={[6, 6, 0, 0]}
               maxBarSize={BAR_SLOT_PX - 18}
               isAnimationActive={false}
@@ -154,11 +130,13 @@ export function ProjectCompareBars({
                 />
               ))}
               <LabelList
-                dataKey="compute"
+                dataKey={metricMode === "usage" ? "usageCuHours" : "estimatedCostUsd"}
                 position="top"
                 fill={TICK_FILL}
                 fontSize={10}
-                formatter={(v: number) => formatAbbrev(v)}
+                formatter={(v: number) =>
+                  metricMode === "usage" ? formatAbbrev(v) : `$${formatAbbrev(v)}`
+                }
               />
             </Bar>
           </BarChart>
@@ -171,27 +149,23 @@ export function ProjectCompareBars({
 export function buildCompareBarData(
   projects: Array<{
     name: string;
-    totals: Record<NeonUsageMetricName, string>;
+    normalizedTotals: { computeCuHours: number };
+    estimatedCost: { totalUsd: number };
   }>,
+  mode: "usage" | "cost",
 ): CompareBarDatum[] {
   const rows: CompareBarDatum[] = [];
   for (const p of projects) {
-    const storageSum = sumStorageByteMonthStrings(p.totals);
-    let computeBn = 0n;
-    try {
-      computeBn = BigInt(p.totals.compute_unit_seconds ?? "0");
-    } catch {
-      computeBn = 0n;
-    }
-    const computeStr = computeBn.toString();
-    const storageStr = storageSum.toString();
     rows.push({
       label: p.name.length > 22 ? `${p.name.slice(0, 20)}…` : p.name,
       fullName: p.name,
-      compute: bigintToChartSafeNumber(computeBn),
-      computeExact: computeStr,
-      storageByteMoExact: storageStr,
+      usageCuHours: p.normalizedTotals.computeCuHours,
+      estimatedCostUsd: p.estimatedCost.totalUsd,
     });
   }
-  return rows.sort((a, b) => b.compute - a.compute);
+  return rows.sort((a, b) =>
+    mode === "usage"
+      ? b.usageCuHours - a.usageCuHours
+      : b.estimatedCostUsd - a.estimatedCostUsd,
+  );
 }

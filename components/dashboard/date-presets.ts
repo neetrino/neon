@@ -5,6 +5,24 @@ export function rangeLastDays(days: number): { from: string; to: string } {
   return { from: start, to: end };
 }
 
+export function rangeCurrentMonthUtc(): { from: string; to: string } {
+  const today = utcToday();
+  const [y, m] = today.split("-").map(Number);
+  const from = `${y}-${String(m).padStart(2, "0")}-01`;
+  return { from, to: today };
+}
+
+export function rangePreviousMonthUtc(): { from: string; to: string } {
+  const today = utcToday();
+  const [y, m] = today.split("-").map(Number);
+  const prevYear = m === 1 ? y - 1 : y;
+  const prevMonth = m === 1 ? 12 : m - 1;
+  const from = `${prevYear}-${String(prevMonth).padStart(2, "0")}-01`;
+  const daysInPrevMonth = new Date(Date.UTC(prevYear, prevMonth, 0)).getUTCDate();
+  const to = `${prevYear}-${String(prevMonth).padStart(2, "0")}-${String(daysInPrevMonth).padStart(2, "0")}`;
+  return { from, to };
+}
+
 export function utcToday(): string {
   const n = new Date();
   return toIsoDate(n);

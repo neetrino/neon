@@ -7,8 +7,11 @@ import {
 } from "@/components/dashboard/project-table-shared";
 import {
   formatTotalsIntegerString,
-  sumStorageByteMonthStrings,
 } from "@/components/dashboard/usage-display-format";
+
+function formatUsd(value: number): string {
+  return `$${value.toFixed(2)}`;
+}
 
 export function ProjectTableList({
   projects,
@@ -30,16 +33,22 @@ export function ProjectTableList({
               Last snap
             </th>
             <th className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wide text-zinc-600">
-              CU·s
+              CU-hrs
             </th>
             <th className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wide text-zinc-600">
-              CU·s/d
+              CU-hrs/d
             </th>
             <th className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wide text-zinc-600">
               Rows
             </th>
             <th className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wide text-zinc-600">
-              Storage
+              Storage avg GB
+            </th>
+            <th className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wide text-zinc-600">
+              Est. total $
+            </th>
+            <th className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wide text-zinc-600">
+              Compute $
             </th>
             {PROJECT_TABLE_METRICS.map((m) => (
               <th
@@ -54,19 +63,19 @@ export function ProjectTableList({
         <tbody>
           {projects.map((p, idx) => {
             const u = aggregateFor(usageByProjectId, p.neonProjectId);
-            const storageSum = u
-              ? formatTotalsIntegerString(sumStorageByteMonthStrings(u.totals).toString())
-              : "—";
             const cuTotal = u
-              ? formatTotalsIntegerString(u.totals.compute_unit_seconds)
+              ? u.normalizedTotals.computeCuHours.toFixed(2)
               : usageByProjectId
                 ? "0"
                 : "…";
             const cuDay = u
-              ? formatAvgPerDay(u.averagesPerCalendarDay.compute_unit_seconds)
+              ? formatAvgPerDay(u.averagesPerCalendarDay.compute_unit_seconds / 3600)
               : usageByProjectId
                 ? formatAvgPerDay(0)
                 : "…";
+            const storageAvgGb = u ? u.normalizedTotals.storageAvgGb.toFixed(2) : usageByProjectId ? "0.00" : "…";
+            const estTotal = u ? formatUsd(u.estimatedCost.totalUsd) : usageByProjectId ? "$0.00" : "…";
+            const estCompute = u ? formatUsd(u.estimatedCost.computeUsd) : usageByProjectId ? "$0.00" : "…";
             const stripe = idx % 2 === 0 ? "bg-white" : "bg-zinc-50/80";
             return (
               <tr
@@ -95,13 +104,15 @@ export function ProjectTableList({
                 <td className="px-3 py-3 text-right font-mono text-xs text-zinc-600">
                   {u ? String(u.snapshotRows) : usageByProjectId ? "0" : "…"}
                 </td>
-                <td className="px-3 py-3 text-right font-mono text-xs text-zinc-800">{storageSum}</td>
+                <td className="px-3 py-3 text-right font-mono text-xs text-zinc-800">{storageAvgGb}</td>
+                <td className="px-3 py-3 text-right font-mono text-xs text-zinc-800">{estTotal}</td>
+                <td className="px-3 py-3 text-right font-mono text-xs text-zinc-800">{estCompute}</td>
                 {PROJECT_TABLE_METRICS.map((m) => (
                   <td
                     key={m}
                     className="max-w-[7rem] px-2 py-3 text-right font-mono text-xs text-zinc-700"
                   >
-                    {u ? formatTotalsIntegerString(u.totals[m]) : usageByProjectId ? "0" : "…"}
+                    {u ? formatTotalsIntegerString(u.rawTotals[m]) : usageByProjectId ? "0" : "…"}
                   </td>
                 ))}
               </tr>

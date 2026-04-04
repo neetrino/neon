@@ -11,7 +11,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "usage:backfill": "tsx scripts/backfill-neon-usage.ts"
+    "usage:backfill": "tsx scripts/backfill-neon-usage.ts",
+    "usage:reconcile": "tsx scripts/reconcile-neon-usage.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

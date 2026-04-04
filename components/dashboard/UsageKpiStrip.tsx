@@ -1,8 +1,8 @@
 "use client";
 
 import { useId } from "react";
-import type { NeonConsoleKpiSums } from "@/components/dashboard/usage-kpi-summary";
-import { formatBytesAsGb, formatCuHours } from "@/components/dashboard/usage-kpi-summary";
+import type { DashboardKpiSums } from "@/components/dashboard/usage-kpi-summary";
+import { formatCuHours, formatGb, formatUsd } from "@/components/dashboard/usage-kpi-summary";
 import { getKpiTooltip } from "@/lib/constants/kpi-tooltips";
 
 const NEON_USAGE_DOCS_URL = "https://neon.tech/docs/introduction/plan-billing";
@@ -65,15 +65,16 @@ export function UsageKpiStrip({
   loading: boolean;
   fromIso: string;
   toIso: string;
-  sums: NeonConsoleKpiSums | null;
+  sums: DashboardKpiSums | null;
   kpiScope: "all" | "project";
 }) {
   const placeholder = loading || sums === null ? "…" : "—";
 
-  const compute = sums === null ? placeholder : formatCuHours(sums.computeUnitSeconds);
-  const storage = sums === null ? placeholder : formatBytesAsGb(sums.storageByteMonth);
-  const history = sums === null ? placeholder : formatBytesAsGb(sums.historyByteMonth);
-  const network = sums === null ? placeholder : formatBytesAsGb(sums.networkBytes);
+  const compute = sums === null ? placeholder : formatCuHours(sums.computeCuHours);
+  const storage = sums === null ? placeholder : formatGb(sums.storageAvgGb);
+  const history = sums === null ? placeholder : formatGb(sums.historyAvgGb);
+  const network = sums === null ? placeholder : formatGb(sums.networkTotalGb);
+  const estimatedCost = sums === null ? placeholder : formatUsd(sums.estimatedTotalUsd);
 
   return (
     <section
@@ -82,17 +83,22 @@ export function UsageKpiStrip({
     >
       <div className="grid grid-cols-2 gap-x-4 gap-y-4 sm:flex sm:divide-x sm:divide-zinc-200">
         <MetricCell label="Compute" value={compute} hint={getKpiTooltip("compute", kpiScope)} />
-        <MetricCell label="Storage" value={storage} hint={getKpiTooltip("storage", kpiScope)} />
-        <MetricCell label="History" value={history} hint={getKpiTooltip("history", kpiScope)} />
+        <MetricCell label="Storage (avg)" value={storage} hint={getKpiTooltip("storage", kpiScope)} />
+        <MetricCell label="History (avg)" value={history} hint={getKpiTooltip("history", kpiScope)} />
         <MetricCell
           label="Network transfer"
           value={network}
           hint={getKpiTooltip("network", kpiScope)}
         />
+        <MetricCell
+          label="Estimated cost"
+          value={estimatedCost}
+          hint="Approximate cost using Neon usage formulas for the selected period."
+        />
       </div>
       <p className="mt-4 text-xs leading-relaxed text-zinc-500">
-        {formatRangeFooter(fromIso, toIso)} Metrics follow Neon API units; daily snapshots are summed for this
-        range and may differ slightly from the Neon console.{" "}
+        {formatRangeFooter(fromIso, toIso)} Metrics use Neon billing units (CU-hrs, average GB, GB transfer).
+        Estimated cost is approximate and can differ from invoice precision.{" "}
         <a
           href={NEON_USAGE_DOCS_URL}
           className="font-medium text-teal-800 underline decoration-teal-300 underline-offset-2 hover:decoration-teal-600"

@@ -1,25 +1,20 @@
 export type KpiMetricKey = "compute" | "storage" | "history" | "network";
 
 const TOOLTIPS_ALL_PROJECTS: Record<KpiMetricKey, string> = {
-  compute:
-    "The total compute time across all projects in the current billing period",
-  storage:
-    "The combined storage across all root and child branches in the current billing period",
-  history:
-    "The total instant restore storage used for point-in-time recovery in the current billing period",
-  network:
-    "The total data transferred in and out of Neon across all projects in the current billing period",
+  compute: "The total compute usage (CU-hrs) across all projects in the selected range",
+  storage: "Average root + child storage (GB) across the selected range",
+  history: "Average instant restore history storage (GB) across the selected range",
+  network: "Total public + private network transfer (GB) across the selected range",
 };
 
 const TOOLTIPS_SINGLE_PROJECT: Record<KpiMetricKey, string> = {
-  compute:
-    "The total compute time for the selected project in the current billing period",
+  compute: "The total compute usage (CU-hrs) for the selected project in the selected range",
   storage:
-    "The combined storage across all root and child branches for the selected project in the current billing period",
+    "Average root + child storage (GB) for the selected project in the selected range",
   history:
-    "The total instant restore storage used for point-in-time recovery for the selected project in the current billing period",
+    "Average instant restore history storage (GB) for the selected project in the selected range",
   network:
-    "The total data transferred in and out of Neon for the selected project in the current billing period",
+    "Total public + private network transfer (GB) for the selected project in the selected range",
 };
 
 /**

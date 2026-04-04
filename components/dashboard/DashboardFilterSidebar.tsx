@@ -5,14 +5,21 @@ import {
   NEON_USAGE_METRICS,
   type NeonUsageMetricName,
 } from "@/lib/constants/neon-metrics";
-import { rangeLastDays, utcToday } from "@/components/dashboard/date-presets";
+import {
+  rangeCurrentMonthUtc,
+  rangeLastDays,
+  rangePreviousMonthUtc,
+  utcToday,
+} from "@/components/dashboard/date-presets";
 import { isValidIsoDate, normalizeRange } from "@/components/dashboard/date-range-validate";
 import type { ProjectRow } from "@/components/dashboard/types";
 
 const PRESETS = [
-  { label: "7 days", days: 7 },
-  { label: "30 days", days: 30 },
-  { label: "60 days", days: 60 },
+  { label: "Current month", getRange: rangeCurrentMonthUtc },
+  { label: "Previous month", getRange: rangePreviousMonthUtc },
+  { label: "7 days", getRange: () => rangeLastDays(7) },
+  { label: "30 days", getRange: () => rangeLastDays(30) },
+  { label: "60 days", getRange: () => rangeLastDays(60) },
 ] as const;
 
 const SELECT_CLASS =
@@ -20,8 +27,8 @@ const SELECT_CLASS =
 
 const LABEL_CLASS = "text-xs font-medium text-zinc-500";
 
-function presetActive(days: number, range: { from: string; to: string }): boolean {
-  const exp = rangeLastDays(days);
+function presetActive(getRange: () => { from: string; to: string }, range: { from: string; to: string }): boolean {
+  const exp = getRange();
   return range.from === exp.from && range.to === exp.to;
 }
 
@@ -77,12 +84,12 @@ export function DashboardFilterSidebar({
           <p className={LABEL_CLASS}>Quick period</p>
           <div className="mt-2 flex flex-col gap-1.5">
             {PRESETS.map((p) => {
-              const on = presetActive(p.days, range);
+              const on = presetActive(p.getRange, range);
               return (
                 <button
-                  key={p.days}
+                  key={p.label}
                   type="button"
-                  onClick={() => onRangeChange(rangeLastDays(p.days))}
+                  onClick={() => onRangeChange(p.getRange())}
                   className={`rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
                     on
                       ? "bg-teal-600 text-white shadow-sm"

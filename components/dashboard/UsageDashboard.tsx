@@ -8,7 +8,7 @@ import { DashboardFilterSidebar } from "@/components/dashboard/DashboardFilterSi
 import { rangeLastDays } from "@/components/dashboard/date-presets";
 import { SyncPanel } from "@/components/dashboard/DashboardWidgets";
 import { UsageKpiStrip } from "@/components/dashboard/UsageKpiStrip";
-import { sumNeonConsoleKpis } from "@/components/dashboard/usage-kpi-summary";
+import { sumDashboardKpis } from "@/components/dashboard/usage-kpi-summary";
 import {
   buildCompareBarData,
   ProjectCompareBars,
@@ -43,8 +43,10 @@ export function UsageDashboard() {
   const [projectId, setProjectId] = useState<string>("");
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [points, setPoints] = useState<SeriesPoint[]>([]);
+  const [seriesDisplayUnit, setSeriesDisplayUnit] = useState<UsageSeriesResponse["displayUnit"]>("cu_hours");
   const [totalsPayload, setTotalsPayload] = useState<ProjectTotalsResponse | null>(null);
   const [runs, setRuns] = useState<SyncRunRow[]>([]);
+  const [compareMode, setCompareMode] = useState<"usage" | "cost">("usage");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -74,8 +76,8 @@ export function UsageDashboard() {
     const projs = projectId
       ? totalsPayload.projects.filter((p) => p.neonProjectId === projectId)
       : totalsPayload.projects;
-    return buildCompareBarData(projs);
-  }, [totalsPayload, projectId]);
+    return buildCompareBarData(projs, compareMode);
+  }, [totalsPayload, projectId, compareMode]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -104,6 +106,7 @@ export function UsageDashboard() {
       setRuns(st.runs);
       setTotalsPayload(pt);
       setPoints(se.points);
+      setSeriesDisplayUnit(se.displayUnit);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -130,8 +133,21 @@ export function UsageDashboard() {
     if (totalsPayload === null) {
       return null;
     }
-    return sumNeonConsoleKpis(kpiProjects);
+    return sumDashboardKpis(kpiProjects);
   }, [kpiProjects, totalsPayload]);
+
+  const metricTitleWithUnit = useMemo(() => {
+    const unit = (() => {
+      if (seriesDisplayUnit === "cu_hours") {
+        return "CU-hrs";
+      }
+      if (seriesDisplayUnit === "avg_gb" || seriesDisplayUnit === "gb") {
+        return "GB";
+      }
+      return "branch-months";
+    })();
+    return `${NEON_USAGE_METRIC_LABELS[metric]} (${unit})`;
+  }, [metric, seriesDisplayUnit]);
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -188,13 +204,35 @@ export function UsageDashboard() {
         />
 
         <section className="glass-card flex flex-col gap-4 p-4 sm:p-5">
-          <h2 className="text-sm font-semibold text-zinc-900">Compute by project</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-zinc-900">Project comparison</h2>
+            <div className="inline-flex rounded-lg border border-zinc-200 bg-zinc-100/90 p-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setCompareMode("usage")}
+                className={`rounded-md px-2.5 py-1.5 font-medium transition ${
+                  compareMode === "usage" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-600"
+                }`}
+              >
+                Usage
+              </button>
+              <button
+                type="button"
+                onClick={() => setCompareMode("cost")}
+                className={`rounded-md px-2.5 py-1.5 font-medium transition ${
+                  compareMode === "cost" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-600"
+                }`}
+              >
+                Estimated cost
+              </button>
+            </div>
+          </div>
           {loading && !totalsPayload ? (
             <p className="text-sm text-zinc-500">Loading…</p>
           ) : (
             <ProjectCompareBars
               data={compareBarData}
-              calendarDays={totalsPayload?.calendarDays ?? 1}
+              metricMode={compareMode}
             />
           )}
         </section>
@@ -204,7 +242,7 @@ export function UsageDashboard() {
           rows={rows}
           projectIds={projectIds}
           projectNames={projectNames}
-          metricTitle={NEON_USAGE_METRIC_LABELS[metric]}
+          metricTitle={metricTitleWithUnit}
         />
 
         <ProjectTable

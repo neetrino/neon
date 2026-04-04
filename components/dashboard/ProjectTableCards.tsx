@@ -7,8 +7,11 @@ import {
 } from "@/components/dashboard/project-table-shared";
 import {
   formatTotalsIntegerString,
-  sumStorageByteMonthStrings,
 } from "@/components/dashboard/usage-display-format";
+
+function formatUsd(value: number): string {
+  return `$${value.toFixed(2)}`;
+}
 
 function Stat({
   label,
@@ -48,19 +51,18 @@ export function ProjectTableCards({
     <ul className="grid list-none gap-5 sm:grid-cols-2 2xl:grid-cols-3">
       {projects.map((p) => {
         const u = aggregateFor(usageByProjectId, p.neonProjectId);
-        const storageSum = u
-          ? formatTotalsIntegerString(sumStorageByteMonthStrings(u.totals).toString())
-          : "—";
         const cuTotal = u
-          ? formatTotalsIntegerString(u.totals.compute_unit_seconds)
+          ? u.normalizedTotals.computeCuHours.toFixed(2)
           : usageByProjectId
             ? "0"
             : "…";
         const cuDay = u
-          ? formatAvgPerDay(u.averagesPerCalendarDay.compute_unit_seconds)
+          ? formatAvgPerDay(u.averagesPerCalendarDay.compute_unit_seconds / 3600)
           : usageByProjectId
             ? formatAvgPerDay(0)
             : "…";
+        const storageAvg = u ? u.normalizedTotals.storageAvgGb.toFixed(2) : "—";
+        const estCost = u ? formatUsd(u.estimatedCost.totalUsd) : usageByProjectId ? "$0.00" : "…";
         return (
           <li
             key={p.neonProjectId}
@@ -96,13 +98,14 @@ export function ProjectTableCards({
 
             <div className="flex flex-1 flex-col gap-3 p-4">
               <div className="grid grid-cols-2 gap-3">
-                <Stat label="CU·s (period)" value={cuTotal} large />
-                <Stat label="CU·s / day" value={cuDay} />
+                <Stat label="CU-hrs (period)" value={cuTotal} large />
+                <Stat label="CU-hrs / day" value={cuDay} />
                 <Stat
                   label="Snapshots (rows)"
                   value={u ? String(u.snapshotRows) : usageByProjectId ? "0" : "…"}
                 />
-                <Stat label="Storage Σ (B·mo)" value={storageSum} />
+                <Stat label="Storage avg (GB)" value={storageAvg} />
+                <Stat label="Estimated total $" value={estCost} />
               </div>
 
               <details className="group rounded-lg border border-zinc-200 bg-zinc-50/80">
@@ -122,7 +125,7 @@ export function ProjectTableCards({
                         </dt>
                         <dd className="mt-1 font-mono text-sm font-medium text-zinc-900">
                           {u
-                            ? formatTotalsIntegerString(u.totals[m])
+                            ? formatTotalsIntegerString(u.rawTotals[m])
                             : usageByProjectId
                               ? "0"
                               : "…"}

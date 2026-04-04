@@ -11,6 +11,7 @@ const envSchema = z
     DASHBOARD_PASSWORD: z.string().optional(),
     JWT_SECRET: z.string().min(32).optional(),
     APP_URL: z.string().url().optional(),
+    NEON_PRICING_PLAN: z.enum(["launch", "scale"]).default("launch"),
   })
   .superRefine((val, ctx) => {
     if (val.DASHBOARD_PASSWORD && !val.JWT_SECRET) {
