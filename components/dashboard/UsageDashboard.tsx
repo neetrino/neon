@@ -184,6 +184,7 @@ export function UsageDashboard() {
           fromIso={totalsPayload?.from ?? range.from}
           toIso={totalsPayload?.to ?? range.to}
           sums={kpiSums}
+          kpiScope={projectId ? "project" : "all"}
         />
 
         <section className="glass-card flex flex-col gap-4 p-4 sm:p-5">
