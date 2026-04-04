@@ -243,9 +243,14 @@ export async function GET(request: Request) {
 
   const days = calendarDaysInclusive(fromDate, toDate);
 
-  const [neonResult, vercelProjects] = await Promise.all([
+  const [neonResult, vercelProjects, vercelTeamSnapshots] = await Promise.all([
     provider !== 'vercel' ? buildNeonProjects(fromDate, toDate, days) : null,
     provider !== 'neon' ? buildVercelProjects(fromDate, toDate) : null,
+    provider !== 'neon'
+      ? prisma.vercelTeamSnapshot.findMany({
+          where: { snapshotDate: { gte: fromDate, lte: toDate } },
+        })
+      : null,
   ]);
 
   const allProjects = [...(neonResult?.projects ?? []), ...(vercelProjects ?? [])];
@@ -270,6 +275,14 @@ export async function GET(request: Request) {
     (sum, p) => sum + (p.vercelCost?.buildUsd ?? 0),
     0,
   );
+  const vercelPlanUsd = (vercelTeamSnapshots ?? []).reduce(
+    (sum, t) => sum + Number(t.planUsd ?? 0),
+    0,
+  );
+  const vercelTeamOtherUsd = (vercelTeamSnapshots ?? []).reduce(
+    (sum, t) => sum + Number(t.otherUsd ?? 0),
+    0,
+  );
 
   return NextResponse.json({
     from,
@@ -281,11 +294,12 @@ export async function GET(request: Request) {
     provider,
     costSummary: {
       neonTotalUsd: neonTotal,
-      vercelTotalUsd: vercelTotal,
-      grandTotalUsd: neonTotal + vercelTotal,
+      vercelTotalUsd: vercelTotal + vercelPlanUsd + vercelTeamOtherUsd,
+      grandTotalUsd: neonTotal + vercelTotal + vercelPlanUsd + vercelTeamOtherUsd,
       vercelBandwidthUsd,
       vercelFunctionsPlusEdgeUsd,
       vercelBuildUsd,
+      vercelPlanUsd,
     },
     projects: allProjects,
   });

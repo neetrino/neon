@@ -104,9 +104,16 @@ export async function syncVercelForMonth(params: SyncParams): Promise<{ rows: nu
   );
 
   const byProject = new Map<string, ProjectAccumulator>();
+  let teamPlanUsd = 0;
+  let teamOtherUsd = 0;
 
   for (const charge of charges) {
     if (!charge.projectId) {
+      if (charge.resource.toLowerCase() === 'pro') {
+        teamPlanUsd += charge.price;
+      } else {
+        teamOtherUsd += charge.price;
+      }
       continue;
     }
     let acc = byProject.get(charge.projectId);
@@ -171,6 +178,21 @@ export async function syncVercelForMonth(params: SyncParams): Promise<{ rows: nu
     rows += 1;
   }
 
-  logger.info({ rows, period }, 'Vercel sync completed');
+  await prisma.vercelTeamSnapshot.upsert({
+    where: { snapshotDate },
+    create: {
+      snapshotDate,
+      planUsd: toPrismaDecimal(teamPlanUsd),
+      otherUsd: toPrismaDecimal(teamOtherUsd),
+      totalUsd: toPrismaDecimal(teamPlanUsd + teamOtherUsd),
+    },
+    update: {
+      planUsd: toPrismaDecimal(teamPlanUsd),
+      otherUsd: toPrismaDecimal(teamOtherUsd),
+      totalUsd: toPrismaDecimal(teamPlanUsd + teamOtherUsd),
+    },
+  });
+
+  logger.info({ rows, period, teamPlanUsd, teamOtherUsd }, 'Vercel sync completed');
   return { rows };
 }

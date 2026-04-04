@@ -127,7 +127,11 @@ export function UsageKpiStrip({
         className="rounded-xl border border-zinc-200 bg-white px-4 py-4 shadow-sm sm:px-5 sm:py-5"
         aria-label="Vercel cost summary"
       >
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <CostCard
+            label="Plan (Pro)"
+            value={loading ? '…' : formatUsd(costSummary.vercelPlanUsd)}
+          />
           <CostCard
             label="Bandwidth"
             value={loading ? '…' : formatUsd(costSummary.vercelBandwidthUsd)}

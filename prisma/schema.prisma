@@ -86,6 +86,22 @@ model VercelUsageSnapshot {
   @@map("vercel_usage_snapshots")
 }
 
+/// Team-level Vercel charges per billing month (plan fee, non-project usage).
+/// snapshotDate = first day of billing month.
+model VercelTeamSnapshot {
+  id           String   @id @default(cuid())
+  snapshotDate DateTime @db.Date @map("snapshot_date")
+  /// Pro/Enterprise plan license fee for the month.
+  planUsd      Decimal? @map("plan_usd") @db.Decimal(18, 6)
+  /// All other team-level charges without a projectId.
+  otherUsd     Decimal? @map("other_usd") @db.Decimal(18, 6)
+  totalUsd     Decimal? @map("total_usd") @db.Decimal(18, 6)
+
+  @@unique([snapshotDate])
+  @@index([snapshotDate])
+  @@map("vercel_team_snapshots")
+}
+
 model VercelSyncRun {
   id           String    @id @default(cuid())
   startedAt    DateTime  @default(now()) @map("started_at")
