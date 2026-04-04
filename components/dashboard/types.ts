@@ -96,6 +96,20 @@ export type CostSummary = {
   vercelBuildUsd: number;
 };
 
+export type VercelBreakdownPoint = {
+  period: string;
+  bandwidthUsd: number;
+  functionsPlusEdgeUsd: number;
+  buildUsd: number;
+  otherUsd: number;
+};
+
+export type VercelSeriesResponse = {
+  costByProject: Array<{ period: string; byProject: Record<string, number> }>;
+  breakdown: VercelBreakdownPoint[];
+  projectNames: Record<string, string>;
+};
+
 export type ProjectTotalsResponse = {
   from: string;
   to: string;

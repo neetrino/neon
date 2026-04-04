@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { VercelBreakdownPoint } from '@/app/api/usage/vercel-series/route';
+import type { VercelBreakdownPoint } from '@/components/dashboard/types';
 
 const CHART_GRID_STROKE = 'rgba(24, 24, 27, 0.07)';
 const CHART_AXIS_LINE = 'rgba(24, 24, 27, 0.12)';

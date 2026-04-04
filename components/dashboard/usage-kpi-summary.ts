@@ -41,16 +41,40 @@ export function formatUsd(value: number): string {
 }
 
 export function costSummaryFromProjects(
-  projects: Array<{ provider: 'neon' | 'vercel'; estimatedCost: { totalUsd: number } | null; vercelCost: { totalUsd: number } | null }>,
+  projects: Array<{
+    provider: 'neon' | 'vercel';
+    estimatedCost: { totalUsd: number } | null;
+    vercelCost: {
+      totalUsd: number;
+      bandwidthUsd: number;
+      functionUsd: number;
+      edgeFunctionUsd: number;
+      buildUsd: number;
+    } | null;
+  }>,
 ): CostSummary {
   let neonTotalUsd = 0;
   let vercelTotalUsd = 0;
+  let vercelBandwidthUsd = 0;
+  let vercelFunctionsPlusEdgeUsd = 0;
+  let vercelBuildUsd = 0;
   for (const p of projects) {
     if (p.provider === 'neon') {
       neonTotalUsd += p.estimatedCost?.totalUsd ?? 0;
     } else {
       vercelTotalUsd += p.vercelCost?.totalUsd ?? 0;
+      vercelBandwidthUsd += p.vercelCost?.bandwidthUsd ?? 0;
+      vercelFunctionsPlusEdgeUsd +=
+        (p.vercelCost?.functionUsd ?? 0) + (p.vercelCost?.edgeFunctionUsd ?? 0);
+      vercelBuildUsd += p.vercelCost?.buildUsd ?? 0;
     }
   }
-  return { neonTotalUsd, vercelTotalUsd, grandTotalUsd: neonTotalUsd + vercelTotalUsd };
+  return {
+    neonTotalUsd,
+    vercelTotalUsd,
+    grandTotalUsd: neonTotalUsd + vercelTotalUsd,
+    vercelBandwidthUsd,
+    vercelFunctionsPlusEdgeUsd,
+    vercelBuildUsd,
+  };
 }

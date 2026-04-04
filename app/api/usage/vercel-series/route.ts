@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { parseIsoDateOnly } from '@/lib/dates';
 import { snapshotToCost } from '@/lib/vercel/vercel-conversions';
+import type { VercelBreakdownPoint, VercelSeriesResponse } from '@/components/dashboard/types';
 
 const querySchema = z.object({
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -12,20 +13,6 @@ const querySchema = z.object({
 function monthKey(date: Date): string {
   return date.toISOString().slice(0, 7);
 }
-
-export type VercelBreakdownPoint = {
-  period: string;
-  bandwidthUsd: number;
-  functionsPlusEdgeUsd: number;
-  buildUsd: number;
-  otherUsd: number;
-};
-
-export type VercelSeriesResponse = {
-  costByProject: Array<{ period: string; byProject: Record<string, number> }>;
-  breakdown: VercelBreakdownPoint[];
-  projectNames: Record<string, string>;
-};
 
 export async function GET(request: Request) {
   const url = new URL(request.url);

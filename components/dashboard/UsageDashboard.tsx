@@ -13,6 +13,8 @@ import { buildCompareBarData, ProjectCompareBars } from '@/components/dashboard/
 import { buildSpendingBarData, SpendingBarChart } from '@/components/dashboard/SpendingBarChart';
 import { ProjectTable } from '@/components/dashboard/ProjectTable';
 import { UsageLineChartPanel } from '@/components/dashboard/UsageLineChartPanel';
+import { VercelCostLineChart } from '@/components/dashboard/VercelCostLineChart';
+import { VercelBreakdownBarChart } from '@/components/dashboard/VercelBreakdownBarChart';
 import type {
   NeonUsageAggregate,
   ProjectRow,
@@ -22,6 +24,7 @@ import type {
   SeriesPoint,
   SyncRunRow,
   UsageSeriesResponse,
+  VercelSeriesResponse,
 } from '@/components/dashboard/types';
 
 type ProviderFilter = Provider | 'all';
@@ -53,6 +56,7 @@ export function UsageDashboard() {
   const [runs, setRuns] = useState<SyncRunRow[]>([]);
   const [vercelRuns, setVercelRuns] = useState<SyncRunRow[]>([]);
   const [compareMode, setCompareMode] = useState<'usage' | 'cost'>('usage');
+  const [vercelSeries, setVercelSeries] = useState<VercelSeriesResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncingNow, setSyncingNow] = useState(false);
@@ -156,6 +160,8 @@ export function UsageDashboard() {
       const seriesUrl = `/api/usage/series?${qs.toString()}`;
       const projectsUrl = `/api/usage/projects?provider=${provider}`;
 
+      const vercelSeriesUrl = `/api/usage/vercel-series?from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
+
       const fetchPromises: Promise<Response>[] = [
         fetch(projectsUrl),
         fetch('/api/usage/sync-status'),
@@ -164,9 +170,12 @@ export function UsageDashboard() {
       if (provider !== 'vercel') {
         fetchPromises.push(fetch(seriesUrl));
       }
+      if (provider === 'vercel') {
+        fetchPromises.push(fetch(vercelSeriesUrl));
+      }
 
       const responses = await Promise.all(fetchPromises);
-      const [pr, st, pt, se] = responses;
+      const [pr, st, pt, fourthRes] = responses;
 
       const projectsData = await readJson<{ projects: ProjectRow[] }>(pr);
       const statusData = await readJson<{ runs: SyncRunRow[]; vercelRuns: SyncRunRow[] }>(st);
@@ -177,12 +186,18 @@ export function UsageDashboard() {
       setVercelRuns(statusData.vercelRuns ?? []);
       setTotalsPayload(totalsData);
 
-      if (se) {
-        const seriesData = await readJson<UsageSeriesResponse>(se);
+      if (provider === 'vercel' && fourthRes) {
+        const vsData = await readJson<VercelSeriesResponse>(fourthRes);
+        setVercelSeries(vsData);
+        setPoints([]);
+      } else if (provider !== 'vercel' && fourthRes) {
+        const seriesData = await readJson<UsageSeriesResponse>(fourthRes);
         setPoints(seriesData.points);
         setSeriesDisplayUnit(seriesData.displayUnit);
+        setVercelSeries(null);
       } else {
         setPoints([]);
+        setVercelSeries(null);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load');
@@ -229,9 +244,7 @@ export function UsageDashboard() {
 
   const kpiProjects = useMemo(() => {
     if (filteredTotalsPayload === null) return [];
-    return projectId
-      ? neonProjects.filter((p) => p.neonProjectId === projectId)
-      : neonProjects;
+    return projectId ? neonProjects.filter((p) => p.neonProjectId === projectId) : neonProjects;
   }, [filteredTotalsPayload, neonProjects, projectId]);
 
   const kpiSums = useMemo(() => {
@@ -256,6 +269,7 @@ export function UsageDashboard() {
   const showNeonChart = provider !== 'vercel';
   const showSpendingChart = provider === 'all';
   const showNeonCompare = provider !== 'vercel';
+  const showVercelCharts = provider === 'vercel';
   const showProviderBadge = provider === 'all';
 
   return (
@@ -284,9 +298,13 @@ export function UsageDashboard() {
           <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
               {provider === 'neon' ? (
-                <><span className="text-gradient">Neon</span> usage</>
+                <>
+                  <span className="text-gradient">Neon</span> usage
+                </>
               ) : provider === 'vercel' ? (
-                <><span className="text-gradient">Vercel</span> spending</>
+                <>
+                  <span className="text-gradient">Vercel</span> spending
+                </>
               ) : (
                 <>Infrastructure spending</>
               )}
@@ -399,6 +417,17 @@ export function UsageDashboard() {
             projectStatsById={projectStatsById}
             metricTitle={metricTitleWithUnit}
           />
+        ) : null}
+
+        {showVercelCharts ? (
+          <>
+            <VercelCostLineChart
+              loading={loading}
+              points={vercelSeries?.costByProject ?? []}
+              projectNames={vercelSeries?.projectNames ?? {}}
+            />
+            <VercelBreakdownBarChart loading={loading} breakdown={vercelSeries?.breakdown ?? []} />
+          </>
         ) : null}
 
         <ProjectTable
