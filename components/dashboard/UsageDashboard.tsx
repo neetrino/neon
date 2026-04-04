@@ -6,11 +6,9 @@ import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
 import { buildRechartsRows } from "@/components/dashboard/chart-data";
 import { DashboardFilterSidebar } from "@/components/dashboard/DashboardFilterSidebar";
 import { rangeLastDays } from "@/components/dashboard/date-presets";
-import {
-  formatAbbrev,
-  KpiCard,
-  SyncPanel,
-} from "@/components/dashboard/DashboardWidgets";
+import { SyncPanel } from "@/components/dashboard/DashboardWidgets";
+import { UsageKpiStrip } from "@/components/dashboard/UsageKpiStrip";
+import { sumNeonConsoleKpis } from "@/components/dashboard/usage-kpi-summary";
 import {
   buildCompareBarData,
   ProjectCompareBars,
@@ -119,23 +117,26 @@ export function UsageDashboard() {
 
   const { rows, projectIds } = useMemo(() => buildRechartsRows(points), [points]);
 
-  const totalForPeriod = useMemo(() => {
-    let t = 0;
-    for (const p of points) {
-      for (const v of Object.values(p.byProject)) {
-        t += v;
-      }
+  const kpiProjects = useMemo(() => {
+    if (totalsPayload === null) {
+      return [];
     }
-    return t;
-  }, [points]);
+    return projectId
+      ? totalsPayload.projects.filter((p) => p.neonProjectId === projectId)
+      : totalsPayload.projects;
+  }, [totalsPayload, projectId]);
+
+  const kpiSums = useMemo(() => {
+    if (totalsPayload === null) {
+      return null;
+    }
+    return sumNeonConsoleKpis(kpiProjects);
+  }, [kpiProjects, totalsPayload]);
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/login";
   };
-
-  const daysInRangeLabel =
-    totalsPayload !== null ? String(totalsPayload.calendarDays) : loading ? "…" : "—";
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
@@ -178,11 +179,12 @@ export function UsageDashboard() {
           </div>
         ) : null}
 
-        <section className="grid gap-3 sm:grid-cols-3">
-          <KpiCard label="Total (metric)" value={formatAbbrev(totalForPeriod)} />
-          <KpiCard label="Series projects" value={String(projectIds.length)} />
-          <KpiCard label="Days in range" value={daysInRangeLabel} />
-        </section>
+        <UsageKpiStrip
+          loading={loading}
+          fromIso={totalsPayload?.from ?? range.from}
+          toIso={totalsPayload?.to ?? range.to}
+          sums={kpiSums}
+        />
 
         <section className="glass-card flex flex-col gap-4 p-4 sm:p-5">
           <h2 className="text-sm font-semibold text-zinc-900">Compute by project</h2>

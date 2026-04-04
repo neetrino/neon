@@ -1,14 +1,5 @@
 import type { SyncRunRow } from "@/components/dashboard/types";
 
-export function KpiCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="glass-card px-4 py-3.5">
-      <p className="text-xs font-medium text-zinc-500">{label}</p>
-      <p className="mt-1 text-lg font-semibold tabular-nums tracking-tight text-zinc-900">{value}</p>
-    </div>
-  );
-}
-
 export function SyncPanel({ runs }: { runs: SyncRunRow[] }) {
   const last = runs[0];
   if (!last) {
