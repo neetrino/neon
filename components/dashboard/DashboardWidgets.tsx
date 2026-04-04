@@ -1,34 +1,73 @@
 import type { SyncRunRow } from "@/components/dashboard/types";
 
-export function SyncPanel({ runs }: { runs: SyncRunRow[] }) {
+type SyncPanelProps = {
+  runs: SyncRunRow[];
+  onSyncNow: () => Promise<void>;
+  syncingNow: boolean;
+};
+
+export function SyncPanel({ runs, onSyncNow, syncingNow }: SyncPanelProps) {
   const last = runs[0];
+  const isRunning = syncingNow || last?.status === "running";
+
+  const statusTone = isRunning
+    ? "border-sky-200 bg-sky-50/70 text-sky-900"
+    : last?.status === "success"
+      ? "border-emerald-200 bg-emerald-50/70 text-emerald-950"
+      : "border-red-200 bg-red-50/70 text-red-950";
+
+  const indicatorTone = isRunning
+    ? "bg-sky-500"
+    : last?.status === "success"
+      ? "bg-emerald-500"
+      : "bg-red-500";
+
+  const statusLabel = isRunning ? "Synchronizing" : last?.status === "success" ? "Synced" : "Sync failed";
+
   if (!last) {
     return (
-      <div
-        className="glass-card border-amber-200 bg-amber-50/80 px-4 py-2.5 text-sm text-amber-900"
-        role="status"
-      >
-        No sync yet — check <code className="rounded bg-white/80 px-1 text-xs">/api/neon/health</code>{" "}
-        or cron.
+      <div className="inline-flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50/80 px-2.5 py-1.5 text-xs text-amber-900" role="status">
+        <span className="truncate">No sync yet</span>
+        <button
+          type="button"
+          onClick={() => void onSyncNow()}
+          disabled={syncingNow}
+          className="inline-flex items-center justify-center rounded-md bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {syncingNow ? "Syncing..." : "Sync now"}
+        </button>
       </div>
     );
   }
 
-  const ok = last.status === "success";
   return (
-    <div
-      className={`glass-card px-4 py-2.5 text-sm ${
-        ok ? "border-emerald-200 bg-emerald-50/50 text-emerald-950" : "border-red-200 bg-red-50/60 text-red-950"
-      }`}
-      role="status"
-    >
-      <span className="font-medium">{ok ? "Synced" : "Sync failed"}</span>
-      <span className="text-zinc-600">
-        {" · "}
-        {last.targetDate.slice(0, 10)} · {last.rowsUpserted ?? "—"} rows
-      </span>
+    <div className={`inline-flex max-w-full items-center gap-2.5 rounded-xl border px-2.5 py-1.5 text-xs ${statusTone}`} role="status">
+      <div className="flex min-w-0 items-center gap-2">
+        <span
+          className={`h-2 w-2 shrink-0 rounded-full ${indicatorTone} ${isRunning ? "animate-pulse" : ""}`}
+          aria-hidden
+        />
+        <span className="font-semibold">{statusLabel}</span>
+        <span className="truncate text-zinc-700">
+          {last.targetDate.slice(0, 10)} · {last.rowsUpserted ?? "—"} rows
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={() => void onSyncNow()}
+        disabled={syncingNow}
+        className="inline-flex shrink-0 items-center justify-center rounded-md bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {syncingNow ? "Syncing..." : "Sync now"}
+      </button>
       {last.errorMessage ? (
-        <span className="mt-1 block text-red-800">{last.errorMessage}</span>
+        <button
+          title={last.errorMessage}
+          className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-red-300 bg-red-100 text-[10px] font-semibold text-red-700"
+          aria-label={last.errorMessage}
+        >
+          !
+        </button>
       ) : null}
     </div>
   );

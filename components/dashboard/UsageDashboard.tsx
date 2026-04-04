@@ -50,6 +50,7 @@ export function UsageDashboard() {
   const [compareMode, setCompareMode] = useState<"usage" | "cost">("usage");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [syncingNow, setSyncingNow] = useState(false);
 
   const projectNames = useMemo(() => {
     const m: Record<string, string> = {};
@@ -174,6 +175,21 @@ export function UsageDashboard() {
     void load();
   }, [load]);
 
+  const syncNow = useCallback(async () => {
+    setSyncingNow(true);
+    setError(null);
+    try {
+      await readJson<{ ok: boolean; targetDay: string; rows: number }>(
+        await fetch("/api/usage/sync-now", { method: "POST" }),
+      );
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to synchronize");
+    } finally {
+      setSyncingNow(false);
+    }
+  }, [load]);
+
   const { rows, projectIds } = useMemo(() => buildRechartsRows(filteredPoints), [filteredPoints]);
 
   const kpiProjects = useMemo(() => {
@@ -228,11 +244,14 @@ export function UsageDashboard() {
 
       <div className="flex min-w-0 flex-1 flex-col gap-6 p-4 sm:p-6 lg:max-w-[calc(100vw-17.5rem)]">
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            <span className="text-gradient">Neon</span> usage
-          </h1>
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+              <span className="text-gradient">Neon</span> usage
+            </h1>
+            <SyncPanel runs={runs} onSyncNow={syncNow} syncingNow={syncingNow} />
+          </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-            <label className="w-full sm:w-72">
+            <label className="w-full sm:w-56">
               <span className="sr-only">Search projects</span>
               <input
                 type="search"
@@ -251,8 +270,6 @@ export function UsageDashboard() {
             </button>
           </div>
         </header>
-
-        <SyncPanel runs={runs} />
 
         {error ? (
           <div
