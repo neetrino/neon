@@ -1,3 +1,5 @@
+import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
+
 export type SeriesPoint = {
   period: string;
   byProject: Record<string, number>;
@@ -24,4 +26,19 @@ export type SyncRunRow = {
   errorMessage: string | null;
   rowsUpserted: number | null;
   targetDate: string;
+};
+
+export type ProjectUsageAggregate = {
+  neonProjectId: string;
+  name: string;
+  snapshotRows: number;
+  totals: Record<NeonUsageMetricName, string>;
+  averagesPerCalendarDay: Record<NeonUsageMetricName, number>;
+};
+
+export type ProjectTotalsResponse = {
+  from: string;
+  to: string;
+  calendarDays: number;
+  projects: ProjectUsageAggregate[];
 };

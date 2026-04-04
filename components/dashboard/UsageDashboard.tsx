@@ -1,32 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  NEON_USAGE_METRIC_LABELS,
-  NEON_USAGE_METRICS,
-  type NeonUsageMetricName,
-} from "@/lib/constants/neon-metrics";
+import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
 import { buildRechartsRows } from "@/components/dashboard/chart-data";
-import { CHART_STROKES } from "@/components/dashboard/chart-colors";
 import { rangeLastDays } from "@/components/dashboard/date-presets";
 import {
   formatAbbrev,
   KpiCard,
   SyncPanel,
 } from "@/components/dashboard/DashboardWidgets";
+import {
+  buildCompareBarData,
+  ProjectCompareBars,
+} from "@/components/dashboard/ProjectCompareBars";
 import { ProjectTable } from "@/components/dashboard/ProjectTable";
+import { UsageLineChartPanel } from "@/components/dashboard/UsageLineChartPanel";
 import type {
   ProjectRow,
+  ProjectTotalsResponse,
+  ProjectUsageAggregate,
   SeriesPoint,
   SyncRunRow,
   UsageSeriesResponse,
@@ -58,6 +50,7 @@ export function UsageDashboard() {
   const [projectId, setProjectId] = useState<string>("");
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [points, setPoints] = useState<SeriesPoint[]>([]);
+  const [totalsPayload, setTotalsPayload] = useState<ProjectTotalsResponse | null>(null);
   const [runs, setRuns] = useState<SyncRunRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,17 +63,29 @@ export function UsageDashboard() {
     return m;
   }, [projects]);
 
+  const usageByProjectId = useMemo(() => {
+    if (totalsPayload === null) {
+      return null;
+    }
+    const m = new Map<string, ProjectUsageAggregate>();
+    for (const p of totalsPayload.projects) {
+      m.set(p.neonProjectId, p);
+    }
+    return m;
+  }, [totalsPayload]);
+
+  const compareBarData = useMemo(() => {
+    if (!totalsPayload) {
+      return [];
+    }
+    return buildCompareBarData(totalsPayload.projects);
+  }, [totalsPayload]);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [pr, st] = await Promise.all([
-        readJson<{ projects: ProjectRow[] }>(await fetch("/api/usage/projects")),
-        readJson<{ runs: SyncRunRow[] }>(await fetch("/api/usage/sync-status")),
-      ]);
-      setProjects(pr.projects);
-      setRuns(st.runs);
-
+      const totalsUrl = `/api/usage/project-totals?from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
       const qs = new URLSearchParams({
         from: range.from,
         to: range.to,
@@ -90,9 +95,18 @@ export function UsageDashboard() {
       if (projectId) {
         qs.set("projectId", projectId);
       }
-      const se = await readJson<UsageSeriesResponse>(
-        await fetch(`/api/usage/series?${qs.toString()}`),
-      );
+      const seriesUrl = `/api/usage/series?${qs.toString()}`;
+
+      const [pr, st, pt, se] = await Promise.all([
+        readJson<{ projects: ProjectRow[] }>(await fetch("/api/usage/projects")),
+        readJson<{ runs: SyncRunRow[] }>(await fetch("/api/usage/sync-status")),
+        readJson<ProjectTotalsResponse>(await fetch(totalsUrl)),
+        readJson<UsageSeriesResponse>(await fetch(seriesUrl)),
+      ]);
+
+      setProjects(pr.projects);
+      setRuns(st.runs);
+      setTotalsPayload(pt);
       setPoints(se.points);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
@@ -139,9 +153,13 @@ export function UsageDashboard() {
             <span className="text-gradient">Usage</span>{" "}
             <span className="text-zinc-100">by project</span>
           </h1>
-          <p className="mt-2 max-w-xl text-sm text-zinc-400">
-            Daily snapshots from Neon&apos;s consumption API, stored in Postgres. Cron syncs
-            yesterday once per day on Vercel.
+          <p className="mt-2 max-w-2xl text-sm text-zinc-400">
+            Daily snapshots from Neon&apos;s consumption API (v2), stored in Postgres. Cron syncs
+            yesterday once per day on Vercel. The bar chart compares total{" "}
+            <span className="text-zinc-300">compute (CU·s)</span> and summed{" "}
+            <span className="text-zinc-300">storage (byte·month)</span> per project; the line chart
+            shows any metric over time. Billing does not expose per-database splits or a separate
+            RAM series—compute covers provisioned compute for that period.
           </p>
         </div>
         <button
@@ -172,124 +190,43 @@ export function UsageDashboard() {
       </section>
 
       <section className="glass-card flex flex-col gap-4 p-5 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center">
-          <div className="flex flex-wrap gap-2">
-            {PRESETS.map((p) => (
-              <button
-                key={p.label}
-                type="button"
-                onClick={() => onPreset(p.days)}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                  preset.days === p.days
-                    ? "bg-cyan-500/20 text-cyan-100 ring-1 ring-cyan-500/40"
-                    : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-          <label className="flex items-center gap-2 text-sm text-zinc-400">
-            <span className="whitespace-nowrap">Metric</span>
-            <select
-              value={metric}
-              onChange={(e) => setMetric(e.target.value as NeonUsageMetricName)}
-              className="rounded-lg border border-white/10 bg-zinc-950/80 px-3 py-2 text-zinc-100"
-            >
-              {NEON_USAGE_METRICS.map((m) => (
-                <option key={m} value={m}>
-                  {NEON_USAGE_METRIC_LABELS[m]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-2 text-sm text-zinc-400">
-            <span>Group</span>
-            <select
-              value={groupBy}
-              onChange={(e) => setGroupBy(e.target.value as "day" | "month")}
-              className="rounded-lg border border-white/10 bg-zinc-950/80 px-3 py-2 text-zinc-100"
-            >
-              <option value="day">By day</option>
-              <option value="month">By month</option>
-            </select>
-          </label>
-          <label className="flex min-w-[12rem] items-center gap-2 text-sm text-zinc-400">
-            <span>Project</span>
-            <select
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-zinc-950/80 px-3 py-2 text-zinc-100"
-            >
-              <option value="">All projects</option>
-              {projects.map((p) => (
-                <option key={p.neonProjectId} value={p.neonProjectId}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            onClick={() => void load()}
-            className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm font-medium text-violet-100 transition hover:bg-violet-500/20"
-          >
-            Refresh
-          </button>
+        <div>
+          <h2 className="text-lg font-medium text-zinc-100">Project comparison</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Grouped bars: compute vs storage footprint (root + child + instant restore byte·month).
+            Sorted by compute. Left axis = CU·s, right axis = B·mo.
+          </p>
         </div>
-
-        <div className="h-[380px] w-full pt-2">
-          {loading ? (
-            <p className="text-sm text-zinc-500">Loading chart…</p>
-          ) : rows.length === 0 ? (
-            <p className="text-sm text-zinc-500">
-              No snapshots in this range. Run a cron sync or check your Neon plan (consumption
-              API requires a supported billing plan).
-            </p>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={rows} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                <XAxis
-                  dataKey="period"
-                  tick={{ fill: "#71717a", fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
-                />
-                <YAxis
-                  tick={{ fill: "#71717a", fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(v) => formatAbbrev(Number(v))}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "rgba(14,14,20,0.95)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 12,
-                  }}
-                  labelStyle={{ color: "#e4e4e7" }}
-                />
-                <Legend />
-                {projectIds.map((id, i) => (
-                  <Line
-                    key={id}
-                    type="monotone"
-                    dataKey={id}
-                    name={projectNames[id] ?? id}
-                    stroke={CHART_STROKES[i % CHART_STROKES.length]}
-                    strokeWidth={2}
-                    dot={false}
-                    isAnimationActive={false}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
+        {loading && !totalsPayload ? (
+          <p className="text-sm text-zinc-500">Loading comparison…</p>
+        ) : (
+          <ProjectCompareBars data={compareBarData} />
+        )}
       </section>
 
-      <ProjectTable projects={projects} />
+      <UsageLineChartPanel
+        loading={loading}
+        rows={rows}
+        projectIds={projectIds}
+        projectNames={projectNames}
+        presets={PRESETS}
+        preset={preset}
+        onPreset={onPreset}
+        metric={metric}
+        setMetric={setMetric}
+        groupBy={groupBy}
+        setGroupBy={setGroupBy}
+        projectId={projectId}
+        setProjectId={setProjectId}
+        projects={projects}
+        onRefresh={load}
+      />
+
+      <ProjectTable
+        projects={projects}
+        usageByProjectId={usageByProjectId}
+        calendarDays={totalsPayload?.calendarDays ?? null}
+      />
     </div>
   );
 }
