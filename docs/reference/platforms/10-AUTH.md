@@ -8,15 +8,18 @@
 ## 📋 ԲՈՎԱՆԴԱԿՈՒԹՅՈՒՆ
 
 ### Auth.js (հիմնական — անվճար, open-source)
+
 1. [Auth.js-ի կարգավորում](#authjs-setup)
 2. [Providers](#authjs-providers)
 3. [Database Adapter](#authjs-database)
 4. [Routes-ի պաշտպանություն](#authjs-protection)
 
 ### NestJS Backend (Passport.js + JWT)
+
 5. [Ստեքների կապ. Auth.js → NestJS](#cross-stack)
 
 ### Clerk (այլընտրանք SaaS-ի համար)
+
 6. [Երբ օգտագործել Clerk](#clerk-when)
 7. [Clerk-ի կարգավորում](#clerk-setup)
 
@@ -26,17 +29,18 @@
 
 ## Auth-լուծման ընտրություն
 
-| Չափանիշ | Auth.js | Clerk |
-|----------|---------|-------|
-| Ծախս | Անվճար | $0 → $25+/ամիս |
-| Open-source | Այո | Ոչ (SaaS) |
-| Next.js ինտեգրացիա | Native (App Router) | SDK |
-| Պատրաստի UI | Ոչ (սեփական) | Այո (կոմպոնենտներ) |
-| NestJS backend | JWT → Passport.js | Webhook sync |
-| Երրորդ կողմից կախվածություն | Ոչ | Այո |
-| Կաստոմիզացիա | Լիակատար | Սահմանափակ |
+| Չափանիշ                     | Auth.js             | Clerk              |
+| --------------------------- | ------------------- | ------------------ |
+| Ծախս                        | Անվճար              | $0 → $25+/ամիս     |
+| Open-source                 | Այո                 | Ոչ (SaaS)          |
+| Next.js ինտեգրացիա          | Native (App Router) | SDK                |
+| Պատրաստի UI                 | Ոչ (սեփական)        | Այո (կոմպոնենտներ) |
+| NestJS backend              | JWT → Passport.js   | Webhook sync       |
+| Երրորդ կողմից կախվածություն | Ոչ                  | Այո                |
+| Կաստոմիզացիա                | Լիակատար            | Սահմանափակ         |
 
 **Խորհուրդ.**
+
 - **Auth.js** — նախագծերի մեծամասնության համար (անվճար, ամբողջական վերահսկում, native Next.js)
 - **Clerk** — երբ auth-ի պատրաստի UI և օգտատերերի կառավարում out-of-the-box է պետք (SaaS)
 
@@ -362,6 +366,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 ## 6. Երբ օգտագործել Clerk {#clerk-when}
 
 Clerk-ը հարմար է, երբ.
+
 - Պետք է **պատրաստի UI** auth-ի համար (ձևեր, կոմպոնենտներ, user management)
 - Նախագիծը **SaaS** է կազմակերպությունների կառավարումով
 - Ժամանակ չկա custom auth UI-ի համար
@@ -369,11 +374,11 @@ Clerk-ը հարմար է, երբ.
 
 ### Pricing.
 
-| Պլան | Ծախս | MAU |
-|------|-----------|-----|
-| Free | $0 | 10,000 |
-| Pro | $25/month | 10,000 + $0.02/MAU |
-| Enterprise | Custom | Unlimited |
+| Պլան       | Ծախս      | MAU                |
+| ---------- | --------- | ------------------ |
+| Free       | $0        | 10,000             |
+| Pro        | $25/month | 10,000 + $0.02/MAU |
+| Enterprise | Custom    | Unlimited          |
 
 ---
 
@@ -422,11 +427,7 @@ export const config = {
 // app/layout.tsx
 import { ClerkProvider } from '@clerk/nextjs';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
       <html lang="en">

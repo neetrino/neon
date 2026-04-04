@@ -1,18 +1,22 @@
-"use client";
+'use client';
 
-import { useId } from "react";
-import type { DashboardKpiSums } from "@/components/dashboard/usage-kpi-summary";
-import { formatCuHours, formatGb, formatUsd } from "@/components/dashboard/usage-kpi-summary";
-import { getKpiTooltip } from "@/lib/constants/kpi-tooltips";
+import { useId } from 'react';
+import type { DashboardKpiSums } from '@/components/dashboard/usage-kpi-summary';
+import { formatCuHours, formatGb, formatUsd } from '@/components/dashboard/usage-kpi-summary';
+import { getKpiTooltip } from '@/lib/constants/kpi-tooltips';
 
-const NEON_USAGE_DOCS_URL = "https://neon.tech/docs/introduction/plan-billing";
+const NEON_USAGE_DOCS_URL = 'https://neon.tech/docs/introduction/plan-billing';
 
 function formatRangeFooter(fromIso: string, toIso: string): string {
-  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" };
+  const opts: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  };
   const from = new Date(`${fromIso}T12:00:00.000Z`);
   const to = new Date(`${toIso}T12:00:00.000Z`);
-  const a = from.toLocaleDateString("en-US", opts);
-  const b = to.toLocaleDateString("en-US", opts);
+  const a = from.toLocaleDateString('en-US', opts);
+  const b = to.toLocaleDateString('en-US', opts);
   return a === b ? `Usage on ${a}.` : `Usage for ${a} – ${b}.`;
 }
 
@@ -66,9 +70,9 @@ export function UsageKpiStrip({
   fromIso: string;
   toIso: string;
   sums: DashboardKpiSums | null;
-  kpiScope: "all" | "project";
+  kpiScope: 'all' | 'project';
 }) {
-  const placeholder = loading || sums === null ? "…" : "—";
+  const placeholder = loading || sums === null ? '…' : '—';
 
   const compute = sums === null ? placeholder : formatCuHours(sums.computeCuHours);
   const storage = sums === null ? placeholder : formatGb(sums.storageAvgGb);
@@ -82,13 +86,21 @@ export function UsageKpiStrip({
       aria-label="Usage summary"
     >
       <div className="grid grid-cols-2 gap-x-4 gap-y-4 sm:flex sm:divide-x sm:divide-zinc-200">
-        <MetricCell label="Compute" value={compute} hint={getKpiTooltip("compute", kpiScope)} />
-        <MetricCell label="Storage (avg)" value={storage} hint={getKpiTooltip("storage", kpiScope)} />
-        <MetricCell label="History (avg)" value={history} hint={getKpiTooltip("history", kpiScope)} />
+        <MetricCell label="Compute" value={compute} hint={getKpiTooltip('compute', kpiScope)} />
+        <MetricCell
+          label="Storage (avg)"
+          value={storage}
+          hint={getKpiTooltip('storage', kpiScope)}
+        />
+        <MetricCell
+          label="History (avg)"
+          value={history}
+          hint={getKpiTooltip('history', kpiScope)}
+        />
         <MetricCell
           label="Network transfer"
           value={network}
-          hint={getKpiTooltip("network", kpiScope)}
+          hint={getKpiTooltip('network', kpiScope)}
         />
         <MetricCell
           label="Estimated cost"
@@ -97,8 +109,8 @@ export function UsageKpiStrip({
         />
       </div>
       <p className="mt-4 text-xs leading-relaxed text-zinc-500">
-        {formatRangeFooter(fromIso, toIso)} Metrics use Neon billing units (CU-hrs, average GB, GB transfer).
-        Estimated cost is approximate and can differ from invoice precision.{" "}
+        {formatRangeFooter(fromIso, toIso)} Metrics use Neon billing units (CU-hrs, average GB, GB
+        transfer). Estimated cost is approximate and can differ from invoice precision.{' '}
         <a
           href={NEON_USAGE_DOCS_URL}
           className="font-medium text-teal-800 underline decoration-teal-300 underline-offset-2 hover:decoration-teal-600"

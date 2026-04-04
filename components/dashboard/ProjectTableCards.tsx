@@ -1,38 +1,26 @@
-import { NEON_USAGE_METRIC_LABELS } from "@/lib/constants/neon-metrics";
-import type { ProjectRow, ProjectUsageAggregate } from "@/components/dashboard/types";
+import { NEON_USAGE_METRIC_LABELS } from '@/lib/constants/neon-metrics';
+import type { ProjectRow, ProjectUsageAggregate } from '@/components/dashboard/types';
 import {
   aggregateFor,
   formatAvgPerDay,
   PROJECT_TABLE_METRICS,
-} from "@/components/dashboard/project-table-shared";
-import {
-  formatTotalsIntegerString,
-} from "@/components/dashboard/usage-display-format";
+} from '@/components/dashboard/project-table-shared';
+import { formatTotalsIntegerString } from '@/components/dashboard/usage-display-format';
 
 function formatUsd(value: number): string {
   return `$${value.toFixed(2)}`;
 }
 
-function Stat({
-  label,
-  value,
-  large,
-}: {
-  label: string;
-  value: string;
-  large?: boolean;
-}) {
+function Stat({ label, value, large }: { label: string; value: string; large?: boolean }) {
   return (
     <div
       className={`rounded-lg border px-3 py-2.5 ${
-        large
-          ? "border-teal-200 bg-teal-50/70 shadow-sm"
-          : "border-zinc-200 bg-white shadow-sm"
+        large ? 'border-teal-200 bg-teal-50/70 shadow-sm' : 'border-zinc-200 bg-white shadow-sm'
       }`}
     >
       <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">{label}</p>
       <p
-        className={`mt-1 font-mono tabular-nums text-zinc-900 ${large ? "text-xl font-bold" : "text-sm font-semibold"}`}
+        className={`mt-1 font-mono tabular-nums text-zinc-900 ${large ? 'text-xl font-bold' : 'text-sm font-semibold'}`}
       >
         {value}
       </p>
@@ -54,15 +42,15 @@ export function ProjectTableCards({
         const cuTotal = u
           ? u.normalizedTotals.computeCuHours.toFixed(2)
           : usageByProjectId
-            ? "0"
-            : "…";
+            ? '0'
+            : '…';
         const cuDay = u
           ? formatAvgPerDay(u.averagesPerCalendarDay.compute_unit_seconds / 3600)
           : usageByProjectId
             ? formatAvgPerDay(0)
-            : "…";
-        const storageAvg = u ? u.normalizedTotals.storageAvgGb.toFixed(2) : "—";
-        const estCost = u ? formatUsd(u.estimatedCost.totalUsd) : usageByProjectId ? "$0.00" : "…";
+            : '…';
+        const storageAvg = u ? u.normalizedTotals.storageAvgGb.toFixed(2) : '—';
+        const estCost = u ? formatUsd(u.estimatedCost.totalUsd) : usageByProjectId ? '$0.00' : '…';
         return (
           <li
             key={p.neonProjectId}
@@ -91,8 +79,8 @@ export function ProjectTableCards({
                 ) : null}
               </div>
               <p className="mt-2 text-xs text-zinc-600">
-                Last snapshot:{" "}
-                <span className="font-semibold text-zinc-800">{p.lastSnapshotDate ?? "—"}</span>
+                Last snapshot:{' '}
+                <span className="font-semibold text-zinc-800">{p.lastSnapshotDate ?? '—'}</span>
               </p>
             </div>
 
@@ -102,7 +90,7 @@ export function ProjectTableCards({
                 <Stat label="CU-hrs / day" value={cuDay} />
                 <Stat
                   label="Snapshots (rows)"
-                  value={u ? String(u.snapshotRows) : usageByProjectId ? "0" : "…"}
+                  value={u ? String(u.snapshotRows) : usageByProjectId ? '0' : '…'}
                 />
                 <Stat label="Storage avg (GB)" value={storageAvg} />
                 <Stat label="Estimated total $" value={estCost} />
@@ -112,14 +100,21 @@ export function ProjectTableCards({
                 <summary className="cursor-pointer list-none px-3 py-2.5 text-sm font-semibold text-zinc-700 marker:content-none [&::-webkit-details-marker]:hidden">
                   <span className="flex items-center justify-between gap-2">
                     Other metrics
-                    <span className="text-xs font-normal text-zinc-500 group-open:hidden">Show</span>
-                    <span className="hidden text-xs font-normal text-zinc-500 group-open:inline">Hide</span>
+                    <span className="text-xs font-normal text-zinc-500 group-open:hidden">
+                      Show
+                    </span>
+                    <span className="hidden text-xs font-normal text-zinc-500 group-open:inline">
+                      Hide
+                    </span>
                   </span>
                 </summary>
                 <div className="border-t border-zinc-200 px-3 py-3">
                   <dl className="grid gap-3 sm:grid-cols-2">
                     {PROJECT_TABLE_METRICS.map((m) => (
-                      <div key={m} className="rounded-md border border-zinc-100 bg-white px-2.5 py-2">
+                      <div
+                        key={m}
+                        className="rounded-md border border-zinc-100 bg-white px-2.5 py-2"
+                      >
                         <dt className="text-[11px] font-medium leading-tight text-zinc-500">
                           {NEON_USAGE_METRIC_LABELS[m]}
                         </dt>
@@ -127,8 +122,8 @@ export function ProjectTableCards({
                           {u
                             ? formatTotalsIntegerString(u.rawTotals[m])
                             : usageByProjectId
-                              ? "0"
-                              : "…"}
+                              ? '0'
+                              : '…'}
                         </dd>
                       </div>
                     ))}

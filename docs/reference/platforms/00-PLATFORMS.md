@@ -10,54 +10,54 @@
 
 ### Frontend Hosting
 
-| Պլատֆորմ | Ֆայլ | Երբ օգտագործել |
-|----------|------|-----------------|
+| Պլատֆորմ   | Ֆայլ                           | Երբ օգտագործել                         |
+| ---------- | ------------------------------ | -------------------------------------- |
 | **Vercel** | [01-VERCEL.md](./01-VERCEL.md) | Next.js նախագծեր, հիմնական ընտրություն |
 
 ### Backend Hosting
 
-| Պլատֆորմ | Ֆայլ | Երբ օգտագործել |
-|----------|------|-----------------|
-| **Railway** | [04-RAILWAY.md](./04-RAILWAY.md) | Պարզ backend, լավ DX |
-| **Render** | [05-RENDER.md](./05-RENDER.md) | Կա անվճար tier |
-| **Fly.io** | [06-FLYIO.md](./06-FLYIO.md) | Global edge, ցածր latency |
+| Պլատֆորմ    | Ֆայլ                             | Երբ օգտագործել            |
+| ----------- | -------------------------------- | ------------------------- |
+| **Railway** | [04-RAILWAY.md](./04-RAILWAY.md) | Պարզ backend, լավ DX      |
+| **Render**  | [05-RENDER.md](./05-RENDER.md)   | Կա անվճար tier            |
+| **Fly.io**  | [06-FLYIO.md](./06-FLYIO.md)     | Global edge, ցածր latency |
 
 ### Database
 
-| Պլատֆորմ | Ֆայլ | Երբ օգտագործել |
-|----------|------|-----------------|
+| Պլատֆորմ | Ֆայլ                       | Երբ օգտագործել                            |
+| -------- | -------------------------- | ----------------------------------------- |
 | **Neon** | [02-NEON.md](./02-NEON.md) | Serverless Postgres, հիմնական ընտրություն |
 
 ### CDN և Storage
 
-| Պլատֆորմ | Ֆայլ | Երբ օգտագործել |
-|----------|------|-----------------|
+| Պլատֆորմ       | Ֆայլ                                   | Երբ օգտագործել            |
+| -------------- | -------------------------------------- | ------------------------- |
 | **Cloudflare** | [03-CLOUDFLARE.md](./03-CLOUDFLARE.md) | CDN, R2 storage, WAF, DNS |
 
 ### Cache և Հերթեր
 
-| Պլատֆորմ | Ֆայլ | Երբ օգտագործել |
-|----------|------|-----------------|
+| Պլատֆորմ    | Ֆայլ                             | Երբ օգտագործել                         |
+| ----------- | -------------------------------- | -------------------------------------- |
 | **Upstash** | [09-UPSTASH.md](./09-UPSTASH.md) | Redis serverless, rate limiting, cache |
 
 ### Ինքնություն հաստատում
 
-| Պլատֆորմ | Ֆայլ | Երբ օգտագործել |
-|----------|------|-----------------|
+| Պլատֆորմ             | Ֆայլ                       | Երբ օգտագործել                   |
+| -------------------- | -------------------------- | -------------------------------- |
 | **Clerk / NextAuth** | [10-AUTH.md](./10-AUTH.md) | Օգտատերերի ինքնություն հաստատում |
 
 ### Email
 
-| Պլատֆորմ | Ֆայլ | Երբ օգտագործել |
-|----------|------|-----------------|
+| Պլատֆորմ   | Ֆայլ                         | Երբ օգտագործել       |
+| ---------- | ---------------------------- | -------------------- |
 | **Resend** | [11-EMAIL.md](./11-EMAIL.md) | Թրանզակցիոն նամակներ |
 
 ### DevOps և Մոնիտորինգ
 
-| Պլատֆորմ | Ֆայլ | Երբ օգտագործել |
-|----------|------|-----------------|
+| Պլատֆորմ   | Ֆայլ                           | Երբ օգտագործել               |
+| ---------- | ------------------------------ | ---------------------------- |
 | **GitHub** | [07-GITHUB.md](./07-GITHUB.md) | CI/CD, Secrets, Environments |
-| **Sentry** | [08-SENTRY.md](./08-SENTRY.md) | Error tracking, monitoring |
+| **Sentry** | [08-SENTRY.md](./08-SENTRY.md) | Error tracking, monitoring   |
 
 ---
 
@@ -157,12 +157,12 @@ Monitoring: Sentry + Vercel Analytics
 ```markdown
 ## Որտեղ պահել գաղտնիքները
 
-| Գաղտնիք | Որտեղ պահել |
-|---------|-------------|
-| DATABASE_URL | Vercel/Railway Environment Variables |
-| API Keys | Vercel/Railway Environment Variables |
-| JWT_SECRET | Vercel/Railway Environment Variables |
-| Webhook secrets | Platform-specific |
+| Գաղտնիք         | Որտեղ պահել                          |
+| --------------- | ------------------------------------ |
+| DATABASE_URL    | Vercel/Railway Environment Variables |
+| API Keys        | Vercel/Railway Environment Variables |
+| JWT_SECRET      | Vercel/Railway Environment Variables |
+| Webhook secrets | Platform-specific                    |
 
 ## ԵՐԵՔԵԼԵՎ
 
@@ -177,12 +177,12 @@ Monitoring: Sentry + Vercel Analytics
 ```markdown
 ## Environments
 
-| Environment | Օգտագործում | Database |
-|-------------|--------------|----------|
-| Development | Տեղական զարգացում | Neon dev branch |
-| Preview | PR previews | Neon preview branch |
-| Staging | Թեստավորում | Neon staging branch |
-| Production | Արտադրական սերվեր | Neon main branch |
+| Environment | Օգտագործում       | Database            |
+| ----------- | ----------------- | ------------------- |
+| Development | Տեղական զարգացում | Neon dev branch     |
+| Preview     | PR previews       | Neon preview branch |
+| Staging     | Թեստավորում       | Neon staging branch |
+| Production  | Արտադրական սերվեր | Neon main branch    |
 ```
 
 ---

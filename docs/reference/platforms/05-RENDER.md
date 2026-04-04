@@ -29,11 +29,11 @@
 
 ### Pricing:
 
-| План | Web Service | Особенности |
-|------|-------------|-------------|
-| Free | 750 hours/month | Cold starts, spin down after 15 min |
-| Individual | From $7/month | No spin down |
-| Team | From $19/month | Team features |
+| План       | Web Service     | Особенности                         |
+| ---------- | --------------- | ----------------------------------- |
+| Free       | 750 hours/month | Cold starts, spin down after 15 min |
+| Individual | From $7/month   | No spin down                        |
+| Team       | From $19/month  | Team features                       |
 
 ### Free tier ограничения:
 
@@ -45,15 +45,15 @@
 
 ## 2. Типы сервисов {#типы-сервисов}
 
-| Тип | Назначение | Пример |
-|-----|------------|--------|
-| Web Service | HTTP API, backend | NestJS, Express |
-| Static Site | Frontend | React, Next.js (static) |
-| Background Worker | Async tasks | Queue processors |
-| Cron Job | Scheduled tasks | Daily reports |
-| Private Service | Internal only | Internal API |
-| PostgreSQL | Database | - |
-| Redis | Cache/Queue | - |
+| Тип               | Назначение        | Пример                  |
+| ----------------- | ----------------- | ----------------------- |
+| Web Service       | HTTP API, backend | NestJS, Express         |
+| Static Site       | Frontend          | React, Next.js (static) |
+| Background Worker | Async tasks       | Queue processors        |
+| Cron Job          | Scheduled tasks   | Daily reports           |
+| Private Service   | Internal only     | Internal API            |
+| PostgreSQL        | Database          | -                       |
+| Redis             | Cache/Queue       | -                       |
 
 ---
 
@@ -119,6 +119,7 @@ export class HealthController {
 ```
 
 В настройках:
+
 - Health Check Path: `/health`
 
 ---
@@ -132,12 +133,12 @@ export class HealthController {
 
 ### Типы:
 
-| Тип | Описание |
-|-----|----------|
-| Plain text | Обычная строка |
-| Secret file | Файл (.env, credentials.json) |
-| From Database | Ссылка на БД |
-| From Service | Ссылка на другой сервис |
+| Тип           | Описание                      |
+| ------------- | ----------------------------- |
+| Plain text    | Обычная строка                |
+| Secret file   | Файл (.env, credentials.json) |
+| From Database | Ссылка на БД                  |
+| From Service  | Ссылка на другой сервис       |
 
 ### Пример для NestJS:
 
@@ -231,17 +232,21 @@ datasource db {
 // worker.ts
 import { Worker } from 'bullmq';
 
-const worker = new Worker('email-queue', async job => {
-  console.log('Processing job:', job.id);
-  await sendEmail(job.data);
-}, {
-  connection: {
-    host: process.env.REDIS_HOST,
-    port: parseInt(process.env.REDIS_PORT),
-  }
-});
+const worker = new Worker(
+  'email-queue',
+  async (job) => {
+    console.log('Processing job:', job.id);
+    await sendEmail(job.data);
+  },
+  {
+    connection: {
+      host: process.env.REDIS_HOST,
+      port: parseInt(process.env.REDIS_PORT),
+    },
+  },
+);
 
-worker.on('completed', job => {
+worker.on('completed', (job) => {
   console.log(`Job ${job.id} completed`);
 });
 ```
@@ -281,7 +286,7 @@ services:
   - type: cron
     name: daily-cleanup
     env: node
-    schedule: "0 2 * * *"  # 2 AM daily
+    schedule: '0 2 * * *' # 2 AM daily
     buildCommand: npm install && npm run build
     startCommand: npm run cleanup
 ```
@@ -299,6 +304,7 @@ services:
 ```
 
 Примеры:
+
 - `0 * * * *` — каждый час
 - `0 0 * * *` — каждый день в полночь
 - `0 0 * * 0` — каждое воскресенье
@@ -361,9 +367,9 @@ services:
           name: mydb
           property: connectionString
       - key: JWT_SECRET
-        generateValue: true  # Auto-generate
+        generateValue: true # Auto-generate
       - key: CORS_ORIGIN
-        sync: false  # Set manually
+        sync: false # Set manually
     autoDeploy: true
 
   # Background Worker
@@ -385,7 +391,7 @@ services:
     name: daily-cleanup
     env: node
     region: oregon
-    schedule: "0 2 * * *"
+    schedule: '0 2 * * *'
     buildCommand: npm ci && npm run build
     startCommand: npm run cleanup
 

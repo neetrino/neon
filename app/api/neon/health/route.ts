@@ -1,25 +1,25 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getEnv } from "@/lib/env";
-import type { Env } from "@/lib/env";
-import { listProjectsResponseSchema } from "@/lib/neon/schemas";
-import { logger } from "@/lib/logger";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getEnv } from '@/lib/env';
+import type { Env } from '@/lib/env';
+import { listProjectsResponseSchema } from '@/lib/neon/schemas';
+import { logger } from '@/lib/logger';
 
-const NEON_PROJECTS_URL = "https://console.neon.tech/api/v2/projects";
+const NEON_PROJECTS_URL = 'https://console.neon.tech/api/v2/projects';
 
 function isLoopbackHost(host: string): boolean {
-  const h = host.split(":")[0] ?? "";
-  return h === "localhost" || h === "127.0.0.1" || h === "::1";
+  const h = host.split(':')[0] ?? '';
+  return h === 'localhost' || h === '127.0.0.1' || h === '::1';
 }
 
 /**
  * Whether this request must present `CRON_SECRET` (public deploy vs local smoke test).
  */
 function requiresCronAuth(request: NextRequest, env: Env): boolean {
-  if (env.NODE_ENV !== "production") {
+  if (env.NODE_ENV !== 'production') {
     return false;
   }
-  const host = request.headers.get("host") ?? "";
+  const host = request.headers.get('host') ?? '';
   if (isLoopbackHost(host)) {
     return false;
   }
@@ -39,42 +39,39 @@ export async function GET(request: NextRequest) {
   try {
     env = getEnv();
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Invalid environment";
-    logger.error({ err: e }, "Neon health: env validation failed");
+    const message = e instanceof Error ? e.message : 'Invalid environment';
+    logger.error({ err: e }, 'Neon health: env validation failed');
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 
   if (requiresCronAuth(request, env)) {
     if (!env.CRON_SECRET) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
-    const auth = request.headers.get("authorization");
+    const auth = request.headers.get('authorization');
     if (auth !== `Bearer ${env.CRON_SECRET}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
   }
 
   const url = new URL(NEON_PROJECTS_URL);
-  url.searchParams.set("org_id", env.NEON_ORG_ID);
-  url.searchParams.set("limit", "1");
+  url.searchParams.set('org_id', env.NEON_ORG_ID);
+  url.searchParams.set('limit', '1');
 
   let res: Response;
   try {
     res = await fetch(url, {
-      method: "GET",
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${env.NEON_API_KEY}`,
-        Accept: "application/json",
+        Accept: 'application/json',
       },
-      cache: "no-store",
+      cache: 'no-store',
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Network error";
-    logger.error({ err: e }, "Neon health: fetch failed");
-    return NextResponse.json(
-      { ok: false, error: message },
-      { status: 502 },
-    );
+    const message = e instanceof Error ? e.message : 'Network error';
+    logger.error({ err: e }, 'Neon health: fetch failed');
+    return NextResponse.json({ ok: false, error: message }, { status: 502 });
   }
 
   const text = await res.text();
@@ -82,12 +79,12 @@ export async function GET(request: NextRequest) {
   try {
     json = JSON.parse(text) as unknown;
   } catch {
-    logger.warn({ status: res.status, preview: text.slice(0, 200) }, "Neon health: not JSON");
+    logger.warn({ status: res.status, preview: text.slice(0, 200) }, 'Neon health: not JSON');
     return NextResponse.json(
       {
         ok: false,
         neonHttpStatus: res.status,
-        error: "Response was not JSON",
+        error: 'Response was not JSON',
       },
       { status: res.ok ? 502 : res.status },
     );
@@ -95,12 +92,12 @@ export async function GET(request: NextRequest) {
 
   const parsed = listProjectsResponseSchema.safeParse(json);
   if (!parsed.success) {
-    logger.warn({ issues: parsed.error.flatten() }, "Neon health: schema mismatch");
+    logger.warn({ issues: parsed.error.flatten() }, 'Neon health: schema mismatch');
     return NextResponse.json(
       {
         ok: false,
         neonHttpStatus: res.status,
-        error: "Unexpected response shape from Neon",
+        error: 'Unexpected response shape from Neon',
       },
       { status: res.ok ? 502 : res.status },
     );
@@ -123,6 +120,6 @@ export async function GET(request: NextRequest) {
     orgId: env.NEON_ORG_ID,
     sampleProjectCount: parsed.data.projects.length,
     message:
-      "Neon Console API accepted the key and org_id. Dashboard data still requires DB sync via /api/cron/sync-neon-usage.",
+      'Neon Console API accepted the key and org_id. Dashboard data still requires DB sync via /api/cron/sync-neon-usage.',
   });
 }

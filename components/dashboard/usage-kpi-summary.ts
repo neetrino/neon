@@ -1,4 +1,4 @@
-import type { ProjectUsageAggregate } from "@/components/dashboard/types";
+import type { ProjectUsageAggregate } from '@/components/dashboard/types';
 
 export type DashboardKpiSums = {
   computeCuHours: number;

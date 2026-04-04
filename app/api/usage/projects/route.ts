@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { filterIgnoredProjectIds } from "@/lib/constants/ignored-projects";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { filterIgnoredProjectIds } from '@/lib/constants/ignored-projects';
 
 export async function GET() {
   const projects = await prisma.neonProject.findMany({
-    orderBy: { name: "asc" },
+    orderBy: { name: 'asc' },
     include: {
       snapshots: {
-        orderBy: { snapshotDate: "desc" },
+        orderBy: { snapshotDate: 'desc' },
         take: 1,
         select: { snapshotDate: true },
       },

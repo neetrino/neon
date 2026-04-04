@@ -1,22 +1,22 @@
-import { loadEnvConfig } from "@next/env";
-import { addUtcDays, parseIsoDateOnly, toUtcDateOnly } from "@/lib/dates";
-import { getEnv } from "@/lib/env";
-import { syncUsageForUtcDay } from "@/lib/sync/sync-usage-day";
+import { loadEnvConfig } from '@next/env';
+import { addUtcDays, parseIsoDateOnly, toUtcDateOnly } from '@/lib/dates';
+import { getEnv } from '@/lib/env';
+import { syncUsageForUtcDay } from '@/lib/sync/sync-usage-day';
 
 loadEnvConfig(process.cwd());
 
 const USAGE =
-  "Usage: pnpm usage:backfill -- --from=YYYY-MM-DD --to=YYYY-MM-DD\n" +
-  "  Inclusive UTC calendar days. Requires DATABASE_URL, NEON_API_KEY, NEON_ORG_ID in env.";
+  'Usage: pnpm usage:backfill -- --from=YYYY-MM-DD --to=YYYY-MM-DD\n' +
+  '  Inclusive UTC calendar days. Requires DATABASE_URL, NEON_API_KEY, NEON_ORG_ID in env.';
 
 function parseArgs(argv: string[]): { from: Date; to: Date } {
   let fromStr: string | undefined;
   let toStr: string | undefined;
   for (const a of argv) {
-    if (a.startsWith("--from=")) {
-      fromStr = a.slice("--from=".length);
-    } else if (a.startsWith("--to=")) {
-      toStr = a.slice("--to=".length);
+    if (a.startsWith('--from=')) {
+      fromStr = a.slice('--from='.length);
+    } else if (a.startsWith('--to=')) {
+      toStr = a.slice('--to='.length);
     }
   }
   if (!fromStr || !toStr) {
@@ -26,7 +26,7 @@ function parseArgs(argv: string[]): { from: Date; to: Date } {
   const from = toUtcDateOnly(parseIsoDateOnly(fromStr));
   const to = toUtcDateOnly(parseIsoDateOnly(toStr));
   if (from.getTime() > to.getTime()) {
-    console.error("--from must be <= --to");
+    console.error('--from must be <= --to');
     process.exit(1);
   }
   return { from, to };

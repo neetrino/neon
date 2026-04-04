@@ -1,9 +1,9 @@
-import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
+import type { NeonUsageMetricName } from '@/lib/constants/neon-metrics';
 
 const STORAGE_BYTE_MONTH_METRICS: NeonUsageMetricName[] = [
-  "root_branch_bytes_month",
-  "child_branch_bytes_month",
-  "instant_restore_bytes_month",
+  'root_branch_bytes_month',
+  'child_branch_bytes_month',
+  'instant_restore_bytes_month',
 ];
 
 /**
@@ -11,19 +11,17 @@ const STORAGE_BYTE_MONTH_METRICS: NeonUsageMetricName[] = [
  */
 export function formatTotalsIntegerString(s: string): string {
   try {
-    return BigInt(s).toLocaleString("en-US");
+    return BigInt(s).toLocaleString('en-US');
   } catch {
     return s;
   }
 }
 
-export function sumStorageByteMonthStrings(
-  totals: Record<NeonUsageMetricName, string>,
-): bigint {
+export function sumStorageByteMonthStrings(totals: Record<NeonUsageMetricName, string>): bigint {
   let sum = 0n;
   for (const k of STORAGE_BYTE_MONTH_METRICS) {
     try {
-      sum += BigInt(totals[k] ?? "0");
+      sum += BigInt(totals[k] ?? '0');
     } catch {
       continue;
     }
@@ -44,7 +42,7 @@ export function bigintToChartSafeNumber(value: bigint): number {
  */
 export function formatByteMonthSumScaled(byteMonthSum: bigint): string {
   if (byteMonthSum === 0n) {
-    return "0 B·mo";
+    return '0 B·mo';
   }
   const n = Number(byteMonthSum);
   if (Number.isFinite(n) && n < Number.MAX_SAFE_INTEGER) {
@@ -63,19 +61,19 @@ export function formatByteMonthSumScaled(byteMonthSum: bigint): string {
     if (kib >= 1) {
       return `${kib.toFixed(0)} KiB·mo (sum)`;
     }
-    return `${n.toLocaleString("en-US")} B·mo (sum)`;
+    return `${n.toLocaleString('en-US')} B·mo (sum)`;
   }
   return `${formatTotalsIntegerString(byteMonthSum.toString())} B·mo (sum)`;
 }
 
 export function formatAvgBigIntPerDay(totalStr: string, calendarDays: number): string {
   if (calendarDays < 1) {
-    return "–";
+    return '–';
   }
   try {
     const q = BigInt(totalStr) / BigInt(calendarDays);
     return formatTotalsIntegerString(q.toString());
   } catch {
-    return "–";
+    return '–';
   }
 }

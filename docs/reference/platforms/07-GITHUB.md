@@ -53,6 +53,7 @@
 ## Рекомендуемые правила
 
 ### Обязательно
+
 - [x] Require a pull request before merging
   - [x] Require approvals: 1
   - [x] Dismiss stale pull request approvals
@@ -62,10 +63,12 @@
 - [x] Require conversation resolution
 
 ### Рекомендуется
+
 - [x] Require linear history
 - [x] Include administrators
 
 ### Опционально (для критичных проектов)
+
 - [ ] Require signed commits
 - [ ] Lock branch
 ```
@@ -136,11 +139,11 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 
 ### Рекомендуемые environments:
 
-| Environment | Назначение | Protection |
-|-------------|------------|------------|
-| preview | PR previews | - |
-| staging | Тестирование | - |
-| production | Боевой | Approval required |
+| Environment | Назначение   | Protection        |
+| ----------- | ------------ | ----------------- |
+| preview     | PR previews  | -                 |
+| staging     | Тестирование | -                 |
+| production  | Боевой       | Approval required |
 
 ### Настройка production:
 
@@ -158,7 +161,7 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production  # Требует approval
+    environment: production # Требует approval
     steps:
       - uses: actions/checkout@v4
       - run: echo "Deploying to production"
@@ -185,12 +188,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - run: npm ci
       - run: npm run lint
 
@@ -198,12 +201,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - run: npm ci
       - run: npm run typecheck
 
@@ -211,12 +214,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - run: npm ci
       - run: npm test
 
@@ -225,12 +228,12 @@ jobs:
     needs: [lint, typecheck, test]
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - run: npm ci
       - run: npm run build
 ```
@@ -245,27 +248,27 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '0 0 * * 1'  # Weekly
+    - cron: '0 0 * * 1' # Weekly
 
 jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
+
       - run: npm audit --audit-level=high
-      
+
   secrets-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - uses: trufflesecurity/trufflehog@main
         with:
           extra_args: --only-verified
@@ -287,7 +290,7 @@ jobs:
     environment: staging
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Deploy to Vercel (Staging)
         uses: amondnet/vercel-action@v25
         with:
@@ -301,7 +304,7 @@ jobs:
     needs: deploy-staging
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Deploy to Vercel (Production)
         uses: amondnet/vercel-action@v25
         with:
@@ -327,7 +330,7 @@ jobs:
     environment: preview
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Deploy Preview
         uses: amondnet/vercel-action@v25
         id: vercel
@@ -335,7 +338,7 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-      
+
       - name: Comment PR
         uses: actions/github-script@v7
         with:
@@ -391,7 +394,7 @@ jobs:
 # .github/ISSUE_TEMPLATE/bug_report.yml
 name: Bug Report
 description: Report a bug
-labels: ["bug"]
+labels: ['bug']
 body:
   - type: textarea
     attributes:
@@ -399,7 +402,7 @@ body:
       placeholder: A clear description of the bug
     validations:
       required: true
-  
+
   - type: textarea
     attributes:
       label: Steps to reproduce
@@ -409,12 +412,12 @@ body:
         3. See error
     validations:
       required: true
-  
+
   - type: textarea
     attributes:
       label: Expected behavior
       placeholder: What should happen
-  
+
   - type: textarea
     attributes:
       label: Screenshots
@@ -425,7 +428,7 @@ body:
 # .github/ISSUE_TEMPLATE/feature_request.yml
 name: Feature Request
 description: Suggest a feature
-labels: ["enhancement"]
+labels: ['enhancement']
 body:
   - type: textarea
     attributes:
@@ -433,7 +436,7 @@ body:
       placeholder: Clear description of the feature
     validations:
       required: true
-  
+
   - type: textarea
     attributes:
       label: Use case
@@ -444,6 +447,7 @@ body:
 
 ```markdown
 <!-- .github/pull_request_template.md -->
+
 ## Type of change
 
 - [ ] 🚀 Feature
@@ -470,7 +474,7 @@ body:
 ## Screenshots (if UI change)
 
 | Before | After |
-|--------|-------|
+| ------ | ----- |
 |        |       |
 ```
 

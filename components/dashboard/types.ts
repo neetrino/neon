@@ -1,4 +1,4 @@
-import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
+import type { NeonUsageMetricName } from '@/lib/constants/neon-metrics';
 
 export type SeriesPoint = {
   period: string;
@@ -7,8 +7,8 @@ export type SeriesPoint = {
 
 export type UsageSeriesResponse = {
   metric: string;
-  groupBy: "day" | "month";
-  displayUnit: "cu_hours" | "avg_gb" | "gb" | "branch_months";
+  groupBy: 'day' | 'month';
+  displayUnit: 'cu_hours' | 'avg_gb' | 'gb' | 'branch_months';
   points: SeriesPoint[];
 };
 
@@ -68,7 +68,7 @@ export type ProjectTotalsResponse = {
   to: string;
   calendarDays: number;
   periodHours: number;
-  pricingPlan: "launch" | "scale";
+  pricingPlan: 'launch' | 'scale';
   pricingRates: {
     computePerCuHourUsd: number;
     storagePerGbMonthUsd: number;

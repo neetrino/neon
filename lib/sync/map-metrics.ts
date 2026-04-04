@@ -1,4 +1,4 @@
-import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
+import type { NeonUsageMetricName } from '@/lib/constants/neon-metrics';
 
 type MetricRow = { metric_name: string; value: number };
 
@@ -13,13 +13,13 @@ type SnapshotMetrics = {
 };
 
 const MAP: Record<NeonUsageMetricName, keyof SnapshotMetrics> = {
-  compute_unit_seconds: "computeUnitSeconds",
-  root_branch_bytes_month: "rootBranchBytesMonth",
-  child_branch_bytes_month: "childBranchBytesMonth",
-  instant_restore_bytes_month: "instantRestoreBytesMonth",
-  public_network_transfer_bytes: "publicNetworkTransferBytes",
-  private_network_transfer_bytes: "privateNetworkTransferBytes",
-  extra_branches_month: "extraBranchesMonth",
+  compute_unit_seconds: 'computeUnitSeconds',
+  root_branch_bytes_month: 'rootBranchBytesMonth',
+  child_branch_bytes_month: 'childBranchBytesMonth',
+  instant_restore_bytes_month: 'instantRestoreBytesMonth',
+  public_network_transfer_bytes: 'publicNetworkTransferBytes',
+  private_network_transfer_bytes: 'privateNetworkTransferBytes',
+  extra_branches_month: 'extraBranchesMonth',
 };
 
 /**

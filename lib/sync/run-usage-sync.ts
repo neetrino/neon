@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/db";
-import { logger } from "@/lib/logger";
-import { syncUsageForUtcDay } from "@/lib/sync/sync-usage-day";
+import { prisma } from '@/lib/db';
+import { logger } from '@/lib/logger';
+import { syncUsageForUtcDay } from '@/lib/sync/sync-usage-day';
 
 type RunUsageSyncParams = {
   apiKey: string;
@@ -18,7 +18,7 @@ type RunUsageSyncResult = {
 export async function runUsageSync(params: RunUsageSyncParams): Promise<RunUsageSyncResult> {
   const run = await prisma.syncRun.create({
     data: {
-      status: "running",
+      status: 'running',
       targetDate: params.targetDay,
     },
   });
@@ -33,7 +33,7 @@ export async function runUsageSync(params: RunUsageSyncParams): Promise<RunUsage
     await prisma.syncRun.update({
       where: { id: run.id },
       data: {
-        status: "success",
+        status: 'success',
         finishedAt: new Date(),
         rowsUpserted: rows,
       },
@@ -46,13 +46,13 @@ export async function runUsageSync(params: RunUsageSyncParams): Promise<RunUsage
       targetDay: params.targetDay.toISOString(),
     };
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Unknown error";
-    logger.error({ err: e }, "Usage sync failed");
+    const message = e instanceof Error ? e.message : 'Unknown error';
+    logger.error({ err: e }, 'Usage sync failed');
 
     await prisma.syncRun.update({
       where: { id: run.id },
       data: {
-        status: "error",
+        status: 'error',
         finishedAt: new Date(),
         errorMessage: message,
       },

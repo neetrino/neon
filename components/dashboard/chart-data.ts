@@ -1,4 +1,4 @@
-import type { SeriesPoint } from "@/components/dashboard/types";
+import type { SeriesPoint } from '@/components/dashboard/types';
 
 export type RechartsRow = Record<string, string | number>;
 

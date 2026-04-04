@@ -1,33 +1,36 @@
-"use client";
+'use client';
 
 import {
   NEON_USAGE_METRIC_LABELS,
   NEON_USAGE_METRICS,
   type NeonUsageMetricName,
-} from "@/lib/constants/neon-metrics";
+} from '@/lib/constants/neon-metrics';
 import {
   rangeCurrentMonthUtc,
   rangeLastDays,
   rangePreviousMonthUtc,
   utcToday,
-} from "@/components/dashboard/date-presets";
-import { isValidIsoDate, normalizeRange } from "@/components/dashboard/date-range-validate";
-import type { ProjectRow } from "@/components/dashboard/types";
+} from '@/components/dashboard/date-presets';
+import { isValidIsoDate, normalizeRange } from '@/components/dashboard/date-range-validate';
+import type { ProjectRow } from '@/components/dashboard/types';
 
 const PRESETS = [
-  { label: "Current month", getRange: rangeCurrentMonthUtc },
-  { label: "Previous month", getRange: rangePreviousMonthUtc },
-  { label: "7 days", getRange: () => rangeLastDays(7) },
-  { label: "30 days", getRange: () => rangeLastDays(30) },
-  { label: "60 days", getRange: () => rangeLastDays(60) },
+  { label: 'Current month', getRange: rangeCurrentMonthUtc },
+  { label: 'Previous month', getRange: rangePreviousMonthUtc },
+  { label: '7 days', getRange: () => rangeLastDays(7) },
+  { label: '30 days', getRange: () => rangeLastDays(30) },
+  { label: '60 days', getRange: () => rangeLastDays(60) },
 ] as const;
 
 const SELECT_CLASS =
-  "mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none focus:border-teal-600/40 focus:ring-2 focus:ring-teal-600/20";
+  'mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none focus:border-teal-600/40 focus:ring-2 focus:ring-teal-600/20';
 
-const LABEL_CLASS = "text-xs font-medium text-zinc-500";
+const LABEL_CLASS = 'text-xs font-medium text-zinc-500';
 
-function presetActive(getRange: () => { from: string; to: string }, range: { from: string; to: string }): boolean {
+function presetActive(
+  getRange: () => { from: string; to: string },
+  range: { from: string; to: string },
+): boolean {
   const exp = getRange();
   return range.from === exp.from && range.to === exp.to;
 }
@@ -49,8 +52,8 @@ export function DashboardFilterSidebar({
   onRangeChange: (r: { from: string; to: string }) => void;
   metric: NeonUsageMetricName;
   setMetric: (m: NeonUsageMetricName) => void;
-  groupBy: "day" | "month";
-  setGroupBy: (g: "day" | "month") => void;
+  groupBy: 'day' | 'month';
+  setGroupBy: (g: 'day' | 'month') => void;
   projectId: string;
   setProjectId: (id: string) => void;
   projects: ProjectRow[];
@@ -92,8 +95,8 @@ export function DashboardFilterSidebar({
                   onClick={() => onRangeChange(p.getRange())}
                   className={`rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
                     on
-                      ? "bg-teal-600 text-white shadow-sm"
-                      : "bg-white text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50"
+                      ? 'bg-teal-600 text-white shadow-sm'
+                      : 'bg-white text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50'
                   }`}
                 >
                   {p.label}
@@ -155,7 +158,7 @@ export function DashboardFilterSidebar({
             <span className={LABEL_CLASS}>Step</span>
             <select
               value={groupBy}
-              onChange={(e) => setGroupBy(e.target.value as "day" | "month")}
+              onChange={(e) => setGroupBy(e.target.value as 'day' | 'month')}
               className={SELECT_CLASS}
             >
               <option value="day">Daily</option>
@@ -189,7 +192,7 @@ export function DashboardFilterSidebar({
           disabled={loading}
           className="rounded-lg bg-zinc-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 disabled:opacity-50"
         >
-          {loading ? "Loading…" : "Refresh data"}
+          {loading ? 'Loading…' : 'Refresh data'}
         </button>
       </div>
     </aside>

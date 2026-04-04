@@ -1,8 +1,6 @@
 node_modules
 .next
 dist
-build
 coverage
 pnpm-lock.yaml
-prisma/migrations
-.git
+*.min.js

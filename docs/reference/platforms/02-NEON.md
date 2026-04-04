@@ -34,13 +34,13 @@
 
 ### Free tier սահմանափակումներ.
 
-| Ռեսուրս | Սահման |
-|---------|--------|
-| Storage | 0.5 GB |
-| Compute | 191.9 hours/month |
-| Projects | 1 |
-| Branches | 10 |
-| History | 7 days |
+| Ռեսուրս  | Սահման            |
+| -------- | ----------------- |
+| Storage  | 0.5 GB            |
+| Compute  | 191.9 hours/month |
+| Projects | 1                 |
+| Branches | 10                |
+| History  | 7 days            |
 
 ---
 
@@ -57,13 +57,13 @@
 
 ### Regions.
 
-| Region | Կոդ | Օգտագործել |
-|--------|-----|-------------|
-| US East (N. Virginia) | aws-us-east-1 | Vercel (default) |
-| US East (Ohio) | aws-us-east-2 | Alternative US |
-| US West (Oregon) | aws-us-west-2 | West Coast users |
-| Europe (Frankfurt) | aws-eu-central-1 | EU users |
-| Asia Pacific (Singapore) | aws-ap-southeast-1 | APAC users |
+| Region                   | Կոդ                | Օգտագործել       |
+| ------------------------ | ------------------ | ---------------- |
+| US East (N. Virginia)    | aws-us-east-1      | Vercel (default) |
+| US East (Ohio)           | aws-us-east-2      | Alternative US   |
+| US West (Oregon)         | aws-us-west-2      | West Coast users |
+| Europe (Frankfurt)       | aws-eu-central-1   | EU users         |
+| Asia Pacific (Singapore) | aws-ap-southeast-1 | APAC users       |
 
 ### Ստեղծումից հետո.
 
@@ -114,16 +114,17 @@ neonctl branches create --name restore-point --parent main --point-in-time "2024
 
 ### Branch-երի տիպեր.
 
-| Տիպ | Նշանակություն | Compute |
-|-----|---------------|---------|
-| main | Production | Dedicated (խորհուրդ տրվող) |
-| develop | Staging/QA | Shared |
-| preview-* | PR previews | Shared, scale to zero |
-| dev-* | Տեղական զարգացում | Shared, scale to zero |
+| Տիպ        | Նշանակություն     | Compute                    |
+| ---------- | ----------------- | -------------------------- |
+| main       | Production        | Dedicated (խորհուրդ տրվող) |
+| develop    | Staging/QA        | Shared                     |
+| preview-\* | PR previews       | Shared, scale to zero      |
+| dev-\*     | Տեղական զարգացում | Shared, scale to zero      |
 
 ### Ավտոմատ preview branches (Vercel).
 
 Vercel Integration-ի դեպքում.
+
 - Յուրաքանչյուր PR ավտոմատ ստանում է իր database branch-ը
 - Branch-ը ջնջվում է PR-ը փակելիս
 
@@ -139,10 +140,10 @@ postgresql://[user]:[password]@[host]/[database]?sslmode=require
 
 ### Connection string-երի տիպեր.
 
-| Տիպ | Օգտագործում | Օրինակ պարամետր |
-|-----|--------------|-------------------|
-| Pooled | Ծրագիր (Next.js, NestJS) | `?pgbouncer=true` |
-| Direct | Միգրացիաներ (Prisma migrate) | Առանց pgbouncer |
+| Տիպ    | Օգտագործում                  | Օրինակ պարամետր   |
+| ------ | ---------------------------- | ----------------- |
+| Pooled | Ծրագիր (Next.js, NestJS)     | `?pgbouncer=true` |
+| Direct | Միգրացիաներ (Prisma migrate) | Առանց pgbouncer   |
 
 ### Որտեղ գտնել.
 
@@ -212,11 +213,11 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: process.env.NODE_ENV === 'development' 
-    ? ['query', 'error', 'warn'] 
-    : ['error'],
-});
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  });
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
@@ -255,8 +256,8 @@ if (process.env.NODE_ENV !== 'production') {
 ```json
 // Neon Dashboard → Integrations → Vercel
 {
-  "preview_branch_parent": "main",  // կամ "develop"
-  "include_data": true               // պատճենել տվյալները
+  "preview_branch_parent": "main", // կամ "develop"
+  "include_data": true // պատճենել տվյալները
 }
 ```
 
@@ -268,11 +269,11 @@ if (process.env.NODE_ENV !== 'production') {
 
 Neon-ը ավտոմատ պահպանում է փոփոխությունների պատմությունը.
 
-| Պլան | History Retention |
-|------|-------------------|
-| Free | 7 days |
-| Launch | 7 days |
-| Scale | 30 days |
+| Պլան   | History Retention |
+| ------ | ----------------- |
+| Free   | 7 days            |
+| Launch | 7 days            |
+| Scale  | 30 days           |
 
 ### Point-in-Time Recovery (PITR).
 
@@ -324,13 +325,13 @@ psql "postgresql://..." < backup.sql
 
 ### Compute Units (CU).
 
-| CU | vCPU | RAM | Օգտագործում |
-|----|------|-----|--------------|
-| 0.25 | 0.25 | 1 GB | Dev/Preview |
-| 0.5 | 0.5 | 2 GB | Small prod |
-| 1 | 1 | 4 GB | Medium prod |
-| 2 | 2 | 8 GB | Large prod |
-| 4+ | 4+ | 16+ GB | High traffic |
+| CU   | vCPU | RAM    | Օգտագործում  |
+| ---- | ---- | ------ | ------------ |
+| 0.25 | 0.25 | 1 GB   | Dev/Preview  |
+| 0.5  | 0.5  | 2 GB   | Small prod   |
+| 1    | 1    | 4 GB   | Medium prod  |
+| 2    | 2    | 8 GB   | Large prod   |
+| 4+   | 4+   | 16+ GB | High traffic |
 
 ### Կարգավորում.
 

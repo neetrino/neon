@@ -1,16 +1,16 @@
-import { NEON_API_BASE, NEON_USAGE_METRICS } from "@/lib/constants/neon-metrics";
-import { neonGetJson } from "@/lib/neon/client";
+import { NEON_API_BASE, NEON_USAGE_METRICS } from '@/lib/constants/neon-metrics';
+import { neonGetJson } from '@/lib/neon/client';
 import {
   consumptionHistoryV2ResponseSchema,
   type ConsumptionHistoryV2Response,
-} from "@/lib/neon/schemas";
+} from '@/lib/neon/schemas';
 
 type FetchParams = {
   apiKey: string;
   orgId: string;
   fromIso: string;
   toIso: string;
-  granularity: "daily" | "hourly" | "monthly";
+  granularity: 'daily' | 'hourly' | 'monthly';
 };
 
 /**
@@ -18,8 +18,8 @@ type FetchParams = {
  */
 export async function fetchConsumptionHistoryV2(
   params: FetchParams,
-): Promise<ConsumptionHistoryV2Response["projects"]> {
-  const merged: ConsumptionHistoryV2Response["projects"] = [];
+): Promise<ConsumptionHistoryV2Response['projects']> {
+  const merged: ConsumptionHistoryV2Response['projects'] = [];
   let cursor: string | undefined;
 
   for (;;) {
@@ -30,16 +30,16 @@ export async function fetchConsumptionHistoryV2(
       granularity: params.granularity,
     });
     for (const m of NEON_USAGE_METRICS) {
-      searchParams.append("metrics", m);
+      searchParams.append('metrics', m);
     }
-    searchParams.set("limit", "100");
+    searchParams.set('limit', '100');
     if (cursor) {
-      searchParams.set("cursor", cursor);
+      searchParams.set('cursor', cursor);
     }
 
     const raw = await neonGetJson<unknown>({
       apiKey: params.apiKey,
-      path: "/consumption_history/v2/projects",
+      path: '/consumption_history/v2/projects',
       searchParams,
     });
 

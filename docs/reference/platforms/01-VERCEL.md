@@ -88,9 +88,7 @@ vercel --prod   # production
   "headers": [
     {
       "source": "/api/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
   ],
   "rewrites": [
@@ -116,19 +114,19 @@ vercel --prod   # production
 
 ### Փոփոխականների տիպեր.
 
-| Տիպ | Նկարագրություն | Օրինակ |
-|-----|-----------------|--------|
-| Plaintext | Սովորական տեքստ | API_URL |
-| Secret | Գաղտնագրված | DATABASE_URL, API_KEY |
-| Reference | Հղում այլ փոփոխականի | $DATABASE_URL |
+| Տիպ       | Նկարագրություն       | Օրինակ                |
+| --------- | -------------------- | --------------------- |
+| Plaintext | Սովորական տեքստ      | API_URL               |
+| Secret    | Գաղտնագրված          | DATABASE_URL, API_KEY |
+| Reference | Հղում այլ փոփոխականի | $DATABASE_URL         |
 
 ### Environments.
 
-| Environment | Երբ է օգտագործվում |
-|-------------|---------------------|
-| Production | main branch → production URL |
-| Preview | PR և այլ branches → preview URL |
-| Development | `vercel dev` տեղական |
+| Environment | Երբ է օգտագործվում              |
+| ----------- | ------------------------------- |
+| Production  | main branch → production URL    |
+| Preview     | PR և այլ branches → preview URL |
+| Development | `vercel dev` տեղական            |
 
 ### Պարտադիր փոփոխականներ.
 
@@ -277,7 +275,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   const formData = await request.formData();
   const file = formData.get('file') as File;
-  
+
   if (!file) {
     return NextResponse.json({ error: 'No file' }, { status: 400 });
   }
@@ -292,10 +290,10 @@ export async function POST(request: Request) {
 
 ### Սահմանափակումներ.
 
-| Պլան | Ֆայլի չափ | Պահոց |
-|------|------------|-------|
-| Hobby | 4.5 MB | 1 GB |
-| Pro | 500 MB | 100 GB |
+| Պլան  | Ֆայլի չափ | Պահոց  |
+| ----- | --------- | ------ |
+| Hobby | 4.5 MB    | 1 GB   |
+| Pro   | 500 MB    | 100 GB |
 
 ---
 
@@ -326,11 +324,7 @@ export async function getFromCache<T>(key: string): Promise<T | null> {
   return await kv.get<T>(key);
 }
 
-export async function setCache<T>(
-  key: string, 
-  value: T, 
-  ttlSeconds: number
-): Promise<void> {
+export async function setCache<T>(key: string, value: T, ttlSeconds: number): Promise<void> {
   await kv.set(key, value, { ex: ttlSeconds });
 }
 
@@ -338,11 +332,11 @@ export async function setCache<T>(
 export async function checkRateLimit(ip: string, limit: number): Promise<boolean> {
   const key = `rate-limit:${ip}`;
   const current = await kv.incr(key);
-  
+
   if (current === 1) {
     await kv.expire(key, 60); // 1 րոպե պատուհան
   }
-  
+
   return current <= limit;
 }
 ```
@@ -523,12 +517,12 @@ export default function RootLayout({ children }) {
 
 ### Դերեր.
 
-| Դեր | Իրավունքներ |
-|-----|--------------|
-| Owner | Ամբողջական մուտք, billing |
-| Member | Դեպլոյ, նախագծերի կարգավորում |
-| Developer | Միայն դեպլոյ |
-| Viewer | Միայն դիտում |
+| Դեր       | Իրավունքներ                   |
+| --------- | ----------------------------- |
+| Owner     | Ամբողջական մուտք, billing     |
+| Member    | Դեպլոյ, նախագծերի կարգավորում |
+| Developer | Միայն դեպլոյ                  |
+| Viewer    | Միայն դիտում                  |
 
 ### Git Integration.
 
@@ -552,7 +546,7 @@ export default function RootLayout({ children }) {
 - [ ] DATABASE_URL կարգավորված
 - [ ] NEXTAUTH_SECRET կարգավորված
 - [ ] NEXTAUTH_URL կարգավորված
-- [ ] Հրապարակային փոփոխականներ (NEXT_PUBLIC_*) կարգավորված
+- [ ] Հրապարակային փոփոխականներ (NEXT*PUBLIC*\*) կարգավորված
 - [ ] Preview և Production բաժանված
 
 ### Domains.

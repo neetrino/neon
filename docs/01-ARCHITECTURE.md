@@ -22,12 +22,12 @@ Browser  ───────────────────────�
 
 ## Layout (size A)
 
-| Path | Role |
-|------|------|
-| `app/` | Routes, API handlers, global styles |
-| `components/dashboard/` | Dashboard UI |
-| `lib/` | Env, DB, Neon client, sync, auth helpers |
-| `prisma/` | Schema and migrations |
+| Path                    | Role                                     |
+| ----------------------- | ---------------------------------------- |
+| `app/`                  | Routes, API handlers, global styles      |
+| `components/dashboard/` | Dashboard UI                             |
+| `lib/`                  | Env, DB, Neon client, sync, auth helpers |
+| `prisma/`               | Schema and migrations                    |
 
 ## Security
 

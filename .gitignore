@@ -23,6 +23,9 @@ tmp/
 temp/
 .cache/
 
+# Local portable Node (CI/agent bootstrap only)
+.tools/
+
 # IDE (optional, uncomment if needed)
 # .idea/
 # .vscode/

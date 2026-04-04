@@ -1,7 +1,4 @@
-import {
-  listProjectsResponseSchema,
-  type ListProjectsResponse,
-} from "@/lib/neon/schemas";
+import { listProjectsResponseSchema, type ListProjectsResponse } from '@/lib/neon/schemas';
 
 type ListProjectsParams = {
   apiKey: string;
@@ -14,9 +11,9 @@ type ListProjectsParams = {
  */
 export async function listAllNeonProjects(
   params: ListProjectsParams,
-): Promise<ListProjectsResponse["projects"]> {
+): Promise<ListProjectsResponse['projects']> {
   const limit = params.limit ?? 400;
-  const out: ListProjectsResponse["projects"] = [];
+  const out: ListProjectsResponse['projects'] = [];
   let cursor: string | undefined;
 
   for (;;) {
@@ -25,7 +22,7 @@ export async function listAllNeonProjects(
       limit: String(limit),
     });
     if (cursor) {
-      searchParams.set("cursor", cursor);
+      searchParams.set('cursor', cursor);
     }
 
     const raw = await fetch(
@@ -33,9 +30,9 @@ export async function listAllNeonProjects(
       {
         headers: {
           Authorization: `Bearer ${params.apiKey}`,
-          Accept: "application/json",
+          Accept: 'application/json',
         },
-        cache: "no-store",
+        cache: 'no-store',
       },
     );
 

@@ -1,8 +1,6 @@
 /** Normalizes a Date to UTC midnight (calendar date for @db.Date). */
 export function toUtcDateOnly(input: Date): Date {
-  return new Date(
-    Date.UTC(input.getUTCFullYear(), input.getUTCMonth(), input.getUTCDate()),
-  );
+  return new Date(Date.UTC(input.getUTCFullYear(), input.getUTCMonth(), input.getUTCDate()));
 }
 
 /** Calendar "yesterday" in UTC relative to `now`. */
@@ -20,6 +18,6 @@ export function addUtcDays(date: Date, days: number): Date {
 
 export function parseIsoDateOnly(iso: string): Date {
   const day = iso.slice(0, 10);
-  const [y, m, d] = day.split("-").map(Number);
+  const [y, m, d] = day.split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, d));
 }

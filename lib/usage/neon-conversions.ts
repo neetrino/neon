@@ -1,11 +1,11 @@
-import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
+import type { NeonUsageMetricName } from '@/lib/constants/neon-metrics';
 
 export const SECONDS_PER_HOUR = 3600;
 export const BILLING_HOURS_PER_MONTH = 744;
 export const BYTES_PER_DECIMAL_GB = 1_000_000_000;
 export const INCLUDED_PUBLIC_TRANSFER_GB = 100;
 
-export type PricingPlan = "launch" | "scale";
+export type PricingPlan = 'launch' | 'scale';
 
 export type PricingRates = {
   computePerCuHourUsd: number;
@@ -139,8 +139,7 @@ export function estimateProjectCost(
   const storageUsd = normalized.storageGbMonths * rates.storagePerGbMonthUsd;
   const historyUsd = normalized.historyGbMonths * rates.instantRestorePerGbMonthUsd;
   const privateTransferUsd = normalized.privateTransferGb * rates.privateTransferPerGbUsd;
-  const branchesUsd =
-    (billableBranchHours / BILLING_HOURS_PER_MONTH) * rates.branchesPerMonthUsd;
+  const branchesUsd = (billableBranchHours / BILLING_HOURS_PER_MONTH) * rates.branchesPerMonthUsd;
   const publicTransferRawUsd = normalized.publicTransferGb * rates.publicTransferPerGbUsd;
 
   return {
@@ -167,10 +166,7 @@ export function applyPublicTransferAllowance(
   projects: Array<{ estimatedCost: EstimatedProjectCost }>,
   rates: PricingRates,
 ): void {
-  const totalPublicGb = projects.reduce(
-    (sum, p) => sum + p.estimatedCost.publicTransferGb,
-    0,
-  );
+  const totalPublicGb = projects.reduce((sum, p) => sum + p.estimatedCost.publicTransferGb, 0);
   const billablePublicGb = Math.max(0, totalPublicGb - INCLUDED_PUBLIC_TRANSFER_GB);
   const ratio = totalPublicGb > 0 ? billablePublicGb / totalPublicGb : 0;
 

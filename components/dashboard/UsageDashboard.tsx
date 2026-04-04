@@ -1,20 +1,17 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { NEON_USAGE_METRIC_LABELS } from "@/lib/constants/neon-metrics";
-import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
-import { buildRechartsRows } from "@/components/dashboard/chart-data";
-import { DashboardFilterSidebar } from "@/components/dashboard/DashboardFilterSidebar";
-import { rangeLastDays } from "@/components/dashboard/date-presets";
-import { SyncPanel } from "@/components/dashboard/DashboardWidgets";
-import { UsageKpiStrip } from "@/components/dashboard/UsageKpiStrip";
-import { sumDashboardKpis } from "@/components/dashboard/usage-kpi-summary";
-import {
-  buildCompareBarData,
-  ProjectCompareBars,
-} from "@/components/dashboard/ProjectCompareBars";
-import { ProjectTable } from "@/components/dashboard/ProjectTable";
-import { UsageLineChartPanel } from "@/components/dashboard/UsageLineChartPanel";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { NEON_USAGE_METRIC_LABELS } from '@/lib/constants/neon-metrics';
+import type { NeonUsageMetricName } from '@/lib/constants/neon-metrics';
+import { buildRechartsRows } from '@/components/dashboard/chart-data';
+import { DashboardFilterSidebar } from '@/components/dashboard/DashboardFilterSidebar';
+import { rangeLastDays } from '@/components/dashboard/date-presets';
+import { SyncPanel } from '@/components/dashboard/DashboardWidgets';
+import { UsageKpiStrip } from '@/components/dashboard/UsageKpiStrip';
+import { sumDashboardKpis } from '@/components/dashboard/usage-kpi-summary';
+import { buildCompareBarData, ProjectCompareBars } from '@/components/dashboard/ProjectCompareBars';
+import { ProjectTable } from '@/components/dashboard/ProjectTable';
+import { UsageLineChartPanel } from '@/components/dashboard/UsageLineChartPanel';
 import type {
   ProjectRow,
   ProjectTotalsResponse,
@@ -22,12 +19,12 @@ import type {
   SeriesPoint,
   SyncRunRow,
   UsageSeriesResponse,
-} from "@/components/dashboard/types";
+} from '@/components/dashboard/types';
 
 async function readJson<T>(res: Response): Promise<T> {
   if (res.status === 401) {
-    window.location.href = "/login";
-    throw new Error("Unauthorized");
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
   }
   if (!res.ok) {
     const t = await res.text();
@@ -38,16 +35,17 @@ async function readJson<T>(res: Response): Promise<T> {
 
 export function UsageDashboard() {
   const [range, setRange] = useState(() => rangeLastDays(30));
-  const [metric, setMetric] = useState<NeonUsageMetricName>("compute_unit_seconds");
-  const [groupBy, setGroupBy] = useState<"day" | "month">("day");
-  const [projectId, setProjectId] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [metric, setMetric] = useState<NeonUsageMetricName>('compute_unit_seconds');
+  const [groupBy, setGroupBy] = useState<'day' | 'month'>('day');
+  const [projectId, setProjectId] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [points, setPoints] = useState<SeriesPoint[]>([]);
-  const [seriesDisplayUnit, setSeriesDisplayUnit] = useState<UsageSeriesResponse["displayUnit"]>("cu_hours");
+  const [seriesDisplayUnit, setSeriesDisplayUnit] =
+    useState<UsageSeriesResponse['displayUnit']>('cu_hours');
   const [totalsPayload, setTotalsPayload] = useState<ProjectTotalsResponse | null>(null);
   const [runs, setRuns] = useState<SyncRunRow[]>([]);
-  const [compareMode, setCompareMode] = useState<"usage" | "cost">("usage");
+  const [compareMode, setCompareMode] = useState<'usage' | 'cost'>('usage');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncingNow, setSyncingNow] = useState(false);
@@ -148,13 +146,13 @@ export function UsageDashboard() {
         groupBy,
       });
       if (projectId) {
-        qs.set("projectId", projectId);
+        qs.set('projectId', projectId);
       }
       const seriesUrl = `/api/usage/series?${qs.toString()}`;
 
       const [pr, st, pt, se] = await Promise.all([
-        readJson<{ projects: ProjectRow[] }>(await fetch("/api/usage/projects")),
-        readJson<{ runs: SyncRunRow[] }>(await fetch("/api/usage/sync-status")),
+        readJson<{ projects: ProjectRow[] }>(await fetch('/api/usage/projects')),
+        readJson<{ runs: SyncRunRow[] }>(await fetch('/api/usage/sync-status')),
         readJson<ProjectTotalsResponse>(await fetch(totalsUrl)),
         readJson<UsageSeriesResponse>(await fetch(seriesUrl)),
       ]);
@@ -165,7 +163,7 @@ export function UsageDashboard() {
       setPoints(se.points);
       setSeriesDisplayUnit(se.displayUnit);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load");
+      setError(e instanceof Error ? e.message : 'Failed to load');
     } finally {
       setLoading(false);
     }
@@ -180,11 +178,11 @@ export function UsageDashboard() {
     setError(null);
     try {
       await readJson<{ ok: boolean; targetDay: string; rows: number }>(
-        await fetch("/api/usage/sync-now", { method: "POST" }),
+        await fetch('/api/usage/sync-now', { method: 'POST' }),
       );
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to synchronize");
+      setError(e instanceof Error ? e.message : 'Failed to synchronize');
     } finally {
       setSyncingNow(false);
     }
@@ -210,20 +208,20 @@ export function UsageDashboard() {
 
   const metricTitleWithUnit = useMemo(() => {
     const unit = (() => {
-      if (seriesDisplayUnit === "cu_hours") {
-        return "CU-hrs";
+      if (seriesDisplayUnit === 'cu_hours') {
+        return 'CU-hrs';
       }
-      if (seriesDisplayUnit === "avg_gb" || seriesDisplayUnit === "gb") {
-        return "GB";
+      if (seriesDisplayUnit === 'avg_gb' || seriesDisplayUnit === 'gb') {
+        return 'GB';
       }
-      return "branch-months";
+      return 'branch-months';
     })();
     return `${NEON_USAGE_METRIC_LABELS[metric]} (${unit})`;
   }, [metric, seriesDisplayUnit]);
 
   const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/login";
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login';
   };
 
   return (
@@ -285,7 +283,7 @@ export function UsageDashboard() {
           fromIso={filteredTotalsPayload?.from ?? range.from}
           toIso={filteredTotalsPayload?.to ?? range.to}
           sums={kpiSums}
-          kpiScope={projectId ? "project" : "all"}
+          kpiScope={projectId ? 'project' : 'all'}
         />
 
         <section className="glass-card flex flex-col gap-4 p-4 sm:p-5">
@@ -294,18 +292,18 @@ export function UsageDashboard() {
             <div className="inline-flex rounded-lg border border-zinc-200 bg-zinc-100/90 p-1 text-xs">
               <button
                 type="button"
-                onClick={() => setCompareMode("usage")}
+                onClick={() => setCompareMode('usage')}
                 className={`rounded-md px-2.5 py-1.5 font-medium transition ${
-                  compareMode === "usage" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-600"
+                  compareMode === 'usage' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-600'
                 }`}
               >
                 Usage
               </button>
               <button
                 type="button"
-                onClick={() => setCompareMode("cost")}
+                onClick={() => setCompareMode('cost')}
                 className={`rounded-md px-2.5 py-1.5 font-medium transition ${
-                  compareMode === "cost" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-600"
+                  compareMode === 'cost' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-600'
                 }`}
               >
                 Estimated cost
@@ -315,10 +313,7 @@ export function UsageDashboard() {
           {loading && !filteredTotalsPayload ? (
             <p className="text-sm text-zinc-500">Loading…</p>
           ) : (
-            <ProjectCompareBars
-              data={compareBarData}
-              metricMode={compareMode}
-            />
+            <ProjectCompareBars data={compareBarData} metricMode={compareMode} />
           )}
         </section>
 

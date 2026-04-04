@@ -1,9 +1,9 @@
-import { loadEnvConfig } from "@next/env";
-import { NEON_USAGE_METRICS, type NeonUsageMetricName } from "@/lib/constants/neon-metrics";
-import { addUtcDays, parseIsoDateOnly, toUtcDateOnly } from "@/lib/dates";
-import { getEnv } from "@/lib/env";
-import { fetchConsumptionHistoryV2 } from "@/lib/neon/fetch-consumption-v2";
-import { prisma } from "@/lib/db";
+import { loadEnvConfig } from '@next/env';
+import { NEON_USAGE_METRICS, type NeonUsageMetricName } from '@/lib/constants/neon-metrics';
+import { addUtcDays, parseIsoDateOnly, toUtcDateOnly } from '@/lib/dates';
+import { getEnv } from '@/lib/env';
+import { fetchConsumptionHistoryV2 } from '@/lib/neon/fetch-consumption-v2';
+import { prisma } from '@/lib/db';
 
 loadEnvConfig(process.cwd());
 
@@ -28,21 +28,23 @@ function parseArgs(argv: string[]): { from: Date; to: Date; projectId?: string }
   let toStr: string | undefined;
   let projectId: string | undefined;
   for (const a of argv) {
-    if (a.startsWith("--from=")) {
-      fromStr = a.slice("--from=".length);
-    } else if (a.startsWith("--to=")) {
-      toStr = a.slice("--to=".length);
-    } else if (a.startsWith("--projectId=")) {
-      projectId = a.slice("--projectId=".length);
+    if (a.startsWith('--from=')) {
+      fromStr = a.slice('--from='.length);
+    } else if (a.startsWith('--to=')) {
+      toStr = a.slice('--to='.length);
+    } else if (a.startsWith('--projectId=')) {
+      projectId = a.slice('--projectId='.length);
     }
   }
   if (!fromStr || !toStr) {
-    throw new Error("Usage: pnpm tsx scripts/reconcile-neon-usage.ts --from=YYYY-MM-DD --to=YYYY-MM-DD [--projectId=<id>]");
+    throw new Error(
+      'Usage: pnpm tsx scripts/reconcile-neon-usage.ts --from=YYYY-MM-DD --to=YYYY-MM-DD [--projectId=<id>]',
+    );
   }
   const from = toUtcDateOnly(parseIsoDateOnly(fromStr));
   const to = toUtcDateOnly(parseIsoDateOnly(toStr));
   if (from.getTime() > to.getTime()) {
-    throw new Error("--from must be <= --to");
+    throw new Error('--from must be <= --to');
   }
   return { from, to, projectId };
 }
@@ -54,7 +56,7 @@ function fromDbRows(rows: Array<{ neonProjectId: string } & MetricTotals>): Proj
     const acc = out[key] ?? emptyTotals();
     for (const metric of NEON_USAGE_METRICS) {
       const v = row[metric];
-      if (typeof v === "bigint") {
+      if (typeof v === 'bigint') {
         acc[metric] += v;
       }
     }
@@ -66,7 +68,12 @@ function fromDbRows(rows: Array<{ neonProjectId: string } & MetricTotals>): Proj
 function fromNeonApi(
   projects: Array<{
     project_id: string;
-    periods: Array<{ consumption: Array<{ timeframe_start: string; metrics: Array<{ metric_name: string; value: number }> }> }>;
+    periods: Array<{
+      consumption: Array<{
+        timeframe_start: string;
+        metrics: Array<{ metric_name: string; value: number }>;
+      }>;
+    }>;
   }>,
   from: Date,
   to: Date,
@@ -156,23 +163,21 @@ async function main(): Promise<void> {
     orgId: env.NEON_ORG_ID,
     fromIso,
     toIso,
-    granularity: "daily",
+    granularity: 'daily',
   });
   const apiTotals = fromNeonApi(apiProjects, from, to, coverageByProject);
 
-  const allProjectIds = new Set<string>([
-    ...Object.keys(dbTotals),
-    ...Object.keys(apiTotals),
-  ]);
+  const allProjectIds = new Set<string>([...Object.keys(dbTotals), ...Object.keys(apiTotals)]);
   const sorted = [...allProjectIds].sort();
 
   let hasMismatch = false;
   for (const pid of sorted) {
     const db = dbTotals[pid] ?? emptyTotals();
     const api = apiTotals[pid] ?? emptyTotals();
-    const diffs = NEON_USAGE_METRICS
-      .map((m) => ({ metric: m, diff: diffMetric(db[m], api[m]) }))
-      .filter((x) => x.diff !== 0n);
+    const diffs = NEON_USAGE_METRICS.map((m) => ({
+      metric: m,
+      diff: diffMetric(db[m], api[m]),
+    })).filter((x) => x.diff !== 0n);
 
     if (diffs.length === 0) {
       continue;
@@ -180,12 +185,14 @@ async function main(): Promise<void> {
     hasMismatch = true;
     console.log(`\n${pid}`);
     for (const d of diffs) {
-      console.log(`  ${d.metric}: diff=${d.diff.toString()} db=${db[d.metric].toString()} api=${api[d.metric].toString()}`);
+      console.log(
+        `  ${d.metric}: diff=${d.diff.toString()} db=${db[d.metric].toString()} api=${api[d.metric].toString()}`,
+      );
     }
   }
 
   if (!hasMismatch) {
-    console.log("Reconciliation OK: DB matches Neon API for selected range.");
+    console.log('Reconciliation OK: DB matches Neon API for selected range.');
   }
 }
 

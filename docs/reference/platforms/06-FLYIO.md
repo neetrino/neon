@@ -31,13 +31,13 @@
 
 ### Pricing:
 
-| Ресурс | Free Allowance | Цена сверх |
-|--------|----------------|------------|
-| VMs | 3 shared-cpu-1x, 256MB | $1.94/month |
-| Bandwidth | 100 GB outbound | $0.02/GB |
-| Volumes | 1 GB | $0.15/GB/month |
-| IPv4 | - | $2/month per IP |
-| IPv6 | Unlimited | Free |
+| Ресурс    | Free Allowance         | Цена сверх      |
+| --------- | ---------------------- | --------------- |
+| VMs       | 3 shared-cpu-1x, 256MB | $1.94/month     |
+| Bandwidth | 100 GB outbound        | $0.02/GB        |
+| Volumes   | 1 GB                   | $0.15/GB/month  |
+| IPv4      | -                      | $2/month per IP |
+| IPv6      | Unlimited              | Free            |
 
 ### Free tier достаточно для:
 
@@ -238,7 +238,7 @@ primary_region = "iad"
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 1  # Всегда 1 машина работает
-  
+
   [http_service.concurrency]
     type = "requests"
     hard_limit = 250
@@ -251,7 +251,7 @@ primary_region = "iad"
   [[services.ports]]
     port = 80
     handlers = ["http"]
-  
+
   [[services.ports]]
     port = 443
     handlers = ["tls", "http"]
@@ -274,15 +274,15 @@ primary_region = "iad"
 
 ### Регионы:
 
-| Код | Регион |
-|-----|--------|
-| iad | US East (Virginia) |
-| ord | US Central (Chicago) |
+| Код | Регион                |
+| --- | --------------------- |
+| iad | US East (Virginia)    |
+| ord | US Central (Chicago)  |
 | lax | US West (Los Angeles) |
-| fra | Europe (Frankfurt) |
-| lhr | Europe (London) |
-| sin | Asia (Singapore) |
-| syd | Australia (Sydney) |
+| fra | Europe (Frankfurt)    |
+| lhr | Europe (London)       |
+| sin | Asia (Singapore)      |
+| syd | Australia (Sydney)    |
 
 ---
 
@@ -431,13 +431,13 @@ fly scale vm shared-cpu-2x --memory 1024
 
 ### VM sizes:
 
-| Size | vCPU | Memory | Price |
-|------|------|--------|-------|
-| shared-cpu-1x | 1 (shared) | 256 MB | $1.94/mo |
-| shared-cpu-2x | 2 (shared) | 512 MB | $3.88/mo |
-| shared-cpu-4x | 4 (shared) | 1 GB | $7.75/mo |
-| performance-1x | 1 (dedicated) | 2 GB | $29/mo |
-| performance-2x | 2 (dedicated) | 4 GB | $58/mo |
+| Size           | vCPU          | Memory | Price    |
+| -------------- | ------------- | ------ | -------- |
+| shared-cpu-1x  | 1 (shared)    | 256 MB | $1.94/mo |
+| shared-cpu-2x  | 2 (shared)    | 512 MB | $3.88/mo |
+| shared-cpu-4x  | 4 (shared)    | 1 GB   | $7.75/mo |
+| performance-1x | 1 (dedicated) | 2 GB   | $29/mo   |
+| performance-2x | 2 (dedicated) | 4 GB   | $58/mo   |
 
 ### Auto-scaling:
 
@@ -489,9 +489,9 @@ const uploadPath = '/app/data/uploads';
 
 ```typescript
 // В одном app подключаемся к другому
-const apiUrl = process.env.FLY_REGION 
-  ? 'http://api.internal:3000'  // Internal
-  : 'http://localhost:3000';     // Local
+const apiUrl = process.env.FLY_REGION
+  ? 'http://api.internal:3000' // Internal
+  : 'http://localhost:3000'; // Local
 ```
 
 ### WireGuard VPN:

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const metricValueSchema = z.object({
   metric_name: z.string(),
@@ -43,9 +43,7 @@ export const consumptionHistoryV2ResponseSchema = z
   })
   .passthrough();
 
-export type ConsumptionHistoryV2Response = z.infer<
-  typeof consumptionHistoryV2ResponseSchema
->;
+export type ConsumptionHistoryV2Response = z.infer<typeof consumptionHistoryV2ResponseSchema>;
 
 const projectListItemSchema = z
   .object({

@@ -33,7 +33,7 @@
 ## Ինտեգրացիաներ
 
 - [ ] Վճարային համակարգ (Stripe / YooKassa / այլ)
-- [ ] Email  mailing (Resend / SendGrid / այլ)
+- [ ] Email mailing (Resend / SendGrid / այլ)
 - [ ] Աուտենտիֆիկացիա (Auth.js / Clerk / այլ)
 - [ ] Ֆայլերի պահոց (Cloudflare R2 — լռելյայն)
 - [ ] Արտաքին API. [թվարկել]

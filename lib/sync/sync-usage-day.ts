@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/db";
-import { fetchConsumptionHistoryV2 } from "@/lib/neon/fetch-consumption-v2";
-import { listAllNeonProjects } from "@/lib/neon/list-projects";
-import { addUtcDays, parseIsoDateOnly, toUtcDateOnly } from "@/lib/dates";
-import { isIgnoredProjectId } from "@/lib/constants/ignored-projects";
-import { mapMetricsToSnapshot } from "@/lib/sync/map-metrics";
-import { withBackoff } from "@/lib/sync/retry";
-import { logger } from "@/lib/logger";
+import { prisma } from '@/lib/db';
+import { fetchConsumptionHistoryV2 } from '@/lib/neon/fetch-consumption-v2';
+import { listAllNeonProjects } from '@/lib/neon/list-projects';
+import { addUtcDays, parseIsoDateOnly, toUtcDateOnly } from '@/lib/dates';
+import { isIgnoredProjectId } from '@/lib/constants/ignored-projects';
+import { mapMetricsToSnapshot } from '@/lib/sync/map-metrics';
+import { withBackoff } from '@/lib/sync/retry';
+import { logger } from '@/lib/logger';
 
 type SyncParams = {
   apiKey: string;
@@ -23,11 +23,7 @@ function isoRangeForUtcDay(day: Date): { from: string; to: string } {
   };
 }
 
-async function upsertProjectFromList(
-  neonProjectId: string,
-  name: string,
-  regionId?: string,
-) {
+async function upsertProjectFromList(neonProjectId: string, name: string, regionId?: string) {
   await prisma.neonProject.upsert({
     where: { neonProjectId },
     create: { neonProjectId, name, regionId: regionId ?? null },
@@ -52,7 +48,7 @@ async function ensureProjectExists(neonProjectId: string) {
 export async function syncUsageForUtcDay(params: SyncParams): Promise<{ rows: number }> {
   const { from, to } = isoRangeForUtcDay(params.targetDay);
 
-  const projects = await withBackoff("listProjects", () =>
+  const projects = await withBackoff('listProjects', () =>
     listAllNeonProjects({ apiKey: params.apiKey, orgId: params.orgId }),
   );
   const listedProjectIds = new Set(projects.map((project) => project.id));
@@ -61,13 +57,13 @@ export async function syncUsageForUtcDay(params: SyncParams): Promise<{ rows: nu
     await upsertProjectFromList(p.id, p.name, p.region_id);
   }
 
-  const consumptionProjects = await withBackoff("consumptionV2", () =>
+  const consumptionProjects = await withBackoff('consumptionV2', () =>
     fetchConsumptionHistoryV2({
       apiKey: params.apiKey,
       orgId: params.orgId,
       fromIso: from,
       toIso: to,
-      granularity: "daily",
+      granularity: 'daily',
     }),
   );
 
@@ -109,6 +105,6 @@ export async function syncUsageForUtcDay(params: SyncParams): Promise<{ rows: nu
     }
   }
 
-  logger.info({ rows, targetDay: params.targetDay.toISOString() }, "Usage sync completed");
+  logger.info({ rows, targetDay: params.targetDay.toISOString() }, 'Usage sync completed');
   return { rows };
 }

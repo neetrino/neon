@@ -29,11 +29,11 @@
 
 ### Pricing:
 
-| План | Стоимость | Events/month |
-|------|-----------|--------------|
-| Developer | Free | 5,000 |
-| Team | $26/month | 50,000 |
-| Business | $80/month | 100,000+ |
+| План      | Стоимость | Events/month |
+| --------- | --------- | ------------ |
+| Developer | Free      | 5,000        |
+| Team      | $26/month | 50,000       |
+| Business  | $80/month | 100,000+     |
 
 ### Free tier включает:
 
@@ -63,7 +63,6 @@
 1. Project Settings → General:
    - **Name:** my-app-frontend
    - **Platform:** javascript-nextjs
-   
 2. Client Keys (DSN):
    - Скопировать DSN
 
@@ -78,6 +77,7 @@ npx @sentry/wizard@latest -i nextjs
 ```
 
 Wizard создаст:
+
 - `sentry.client.config.ts`
 - `sentry.server.config.ts`
 - `sentry.edge.config.ts`
@@ -95,29 +95,26 @@ import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  
+
   // Performance
   tracesSampleRate: 1.0, // 100% в dev, уменьшить в prod
-  
+
   // Session Replay
   replaysSessionSampleRate: 0.1, // 10% сессий
   replaysOnErrorSampleRate: 1.0, // 100% при ошибках
-  
+
   integrations: [
     Sentry.replayIntegration({
       maskAllText: true,
       blockAllMedia: true,
     }),
   ],
-  
+
   // Environment
   environment: process.env.NODE_ENV,
-  
+
   // Ignore errors
-  ignoreErrors: [
-    'ResizeObserver loop',
-    'Network request failed',
-  ],
+  ignoreErrors: ['ResizeObserver loop', 'Network request failed'],
 });
 ```
 
@@ -211,9 +208,7 @@ import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
-  integrations: [
-    nodeProfilingIntegration(),
-  ],
+  integrations: [nodeProfilingIntegration()],
   tracesSampleRate: 1.0,
   profilesSampleRate: 1.0,
   environment: process.env.NODE_ENV,
@@ -238,21 +233,21 @@ export class SentryFilter extends BaseExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const request = ctx.getRequest();
-    
+
     // Capture in Sentry
     Sentry.withScope((scope) => {
       scope.setUser({
         id: request.user?.id,
         email: request.user?.email,
       });
-      
+
       scope.setExtra('url', request.url);
       scope.setExtra('method', request.method);
       scope.setExtra('body', request.body);
-      
+
       Sentry.captureException(exception);
     });
-    
+
     super.catch(exception, host);
   }
 }
@@ -276,7 +271,7 @@ import * as Sentry from '@sentry/node';
 export class SentryInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
-    
+
     return Sentry.startSpan(
       {
         op: 'http.server',
@@ -309,7 +304,7 @@ module.exports = withSentryConfig(nextConfig, {
   org: 'your-org',
   project: 'your-project',
   authToken: process.env.SENTRY_AUTH_TOKEN,
-  
+
   // Upload source maps
   widenClientFileUpload: true,
   hideSourceMaps: true,
@@ -364,28 +359,19 @@ sentry-cli sourcemaps upload \
 import * as Sentry from '@sentry/nextjs';
 
 async function processOrder(orderId: string) {
-  return Sentry.startSpan(
-    { name: 'processOrder', op: 'function' },
-    async (span) => {
-      // Nested span
-      await Sentry.startSpan(
-        { name: 'validateOrder', op: 'validation' },
-        async () => {
-          await validateOrder(orderId);
-        }
-      );
-      
-      // Another nested span
-      await Sentry.startSpan(
-        { name: 'chargePayment', op: 'payment' },
-        async () => {
-          await chargePayment(orderId);
-        }
-      );
-      
-      return { success: true };
-    }
-  );
+  return Sentry.startSpan({ name: 'processOrder', op: 'function' }, async (span) => {
+    // Nested span
+    await Sentry.startSpan({ name: 'validateOrder', op: 'validation' }, async () => {
+      await validateOrder(orderId);
+    });
+
+    // Another nested span
+    await Sentry.startSpan({ name: 'chargePayment', op: 'payment' }, async () => {
+      await chargePayment(orderId);
+    });
+
+    return { success: true };
+  });
 }
 ```
 
@@ -396,9 +382,7 @@ async function processOrder(orderId: string) {
 import { PrismaIntegration } from '@sentry/node';
 
 Sentry.init({
-  integrations: [
-    new PrismaIntegration(),
-  ],
+  integrations: [new PrismaIntegration()],
 });
 ```
 
@@ -419,12 +403,13 @@ Sentry.init({
 ## Alert: New Error
 
 When: A new issue is created
-Conditions: 
-  - Level is error or fatal
-  - Event count > 1 in 1 hour
-Actions:
-  - Send notification to Slack
-  - Send email
+Conditions:
+
+- Level is error or fatal
+- Event count > 1 in 1 hour
+  Actions:
+- Send notification to Slack
+- Send email
 ```
 
 ### Metric Alert:
@@ -434,8 +419,9 @@ Actions:
 
 When: Error count > 100 in 5 minutes
 Actions:
-  - Send critical notification
-  - Create PagerDuty incident
+
+- Send critical notification
+- Create PagerDuty incident
 ```
 
 ### Slack Integration:
@@ -457,7 +443,7 @@ Actions:
     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   run: |
     VERSION=$(git rev-parse --short HEAD)
-    
+
     sentry-cli releases new $VERSION
     sentry-cli releases set-commits $VERSION --auto
     sentry-cli releases finalize $VERSION
@@ -488,7 +474,7 @@ sentry-cli releases deploys $VERSION new -e production
 // sentry.client.config.ts
 Sentry.init({
   dsn: '...',
-  
+
   integrations: [
     Sentry.replayIntegration({
       // Mask all text (privacy)
@@ -497,10 +483,10 @@ Sentry.init({
       blockAllMedia: true,
     }),
   ],
-  
+
   // Record 10% of all sessions
   replaysSessionSampleRate: 0.1,
-  
+
   // Record 100% of sessions with errors
   replaysOnErrorSampleRate: 1.0,
 });
@@ -510,12 +496,12 @@ Sentry.init({
 
 ```typescript
 Sentry.replayIntegration({
-  maskAllText: true,           // Скрывать весь текст
-  maskAllInputs: true,         // Скрывать все inputs
-  blockAllMedia: true,         // Блокировать медиа
-  
+  maskAllText: true, // Скрывать весь текст
+  maskAllInputs: true, // Скрывать все inputs
+  blockAllMedia: true, // Блокировать медиа
+
   // Или выборочно
-  block: ['.sensitive-data'],  // CSS селекторы
+  block: ['.sensitive-data'], // CSS селекторы
   mask: ['input[type=password]'],
 });
 ```
@@ -534,7 +520,7 @@ Sentry.replayIntegration({
 ### Next.js:
 
 - [ ] @sentry/nextjs установлен
-- [ ] sentry.*.config.ts созданы
+- [ ] sentry.\*.config.ts созданы
 - [ ] next.config.js обновлён
 - [ ] NEXT_PUBLIC_SENTRY_DSN в env
 - [ ] global-error.tsx создан

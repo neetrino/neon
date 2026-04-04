@@ -1,8 +1,8 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const envSchema = z
   .object({
-    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     DATABASE_URL: z.string().min(1),
     NEON_API_KEY: z.string().min(1),
     NEON_ORG_ID: z.string().regex(/^[a-z0-9-]{1,60}$/),
@@ -11,14 +11,14 @@ const envSchema = z
     DASHBOARD_PASSWORD: z.string().optional(),
     JWT_SECRET: z.string().min(32).optional(),
     APP_URL: z.string().url().optional(),
-    NEON_PRICING_PLAN: z.enum(["launch", "scale"]).default("launch"),
+    NEON_PRICING_PLAN: z.enum(['launch', 'scale']).default('launch'),
   })
   .superRefine((val, ctx) => {
     if (val.DASHBOARD_PASSWORD && !val.JWT_SECRET) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "JWT_SECRET is required when DASHBOARD_PASSWORD is set (session signing).",
-        path: ["JWT_SECRET"],
+        message: 'JWT_SECRET is required when DASHBOARD_PASSWORD is set (session signing).',
+        path: ['JWT_SECRET'],
       });
     }
   });

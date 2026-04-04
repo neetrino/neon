@@ -26,11 +26,11 @@
 
 ### Pricing:
 
-| План | Стоимость | Emails/month |
-|------|-----------|--------------|
-| Free | $0 | 3,000 |
-| Pro | $20/month | 50,000 |
-| Enterprise | Custom | Unlimited |
+| План       | Стоимость | Emails/month |
+| ---------- | --------- | ------------ |
+| Free       | $0        | 3,000        |
+| Pro        | $20/month | 50,000       |
+| Enterprise | Custom    | Unlimited    |
 
 ### Free tier:
 
@@ -201,15 +201,7 @@ emails/
 
 ```tsx
 // emails/components/base-layout.tsx
-import {
-  Body,
-  Container,
-  Head,
-  Html,
-  Preview,
-  Section,
-  Text,
-} from '@react-email/components';
+import { Body, Container, Head, Html, Preview, Section, Text } from '@react-email/components';
 
 interface BaseLayoutProps {
   preview: string;
@@ -227,17 +219,13 @@ export function BaseLayout({ preview, children }: BaseLayoutProps) {
           <Section style={header}>
             <Text style={logo}>YourApp</Text>
           </Section>
-          
+
           {/* Content */}
-          <Section style={content}>
-            {children}
-          </Section>
-          
+          <Section style={content}>{children}</Section>
+
           {/* Footer */}
           <Section style={footer}>
-            <Text style={footerText}>
-              © 2024 YourApp. All rights reserved.
-            </Text>
+            <Text style={footerText}>© 2024 YourApp. All rights reserved.</Text>
           </Section>
         </Container>
       </Body>
@@ -299,19 +287,17 @@ export function WelcomeEmail({ name, loginUrl }: WelcomeEmailProps) {
   return (
     <BaseLayout preview={`Welcome to YourApp, ${name}!`}>
       <Heading style={heading}>Welcome, {name}!</Heading>
-      
+
       <Text style={text}>
         Thanks for signing up for YourApp. We're excited to have you on board.
       </Text>
-      
-      <Text style={text}>
-        To get started, click the button below to log in to your account:
-      </Text>
-      
+
+      <Text style={text}>To get started, click the button below to log in to your account:</Text>
+
       <Button style={button} href={loginUrl}>
         Go to Dashboard
       </Button>
-      
+
       <Text style={text}>
         If you have any questions, just reply to this email—we're always happy to help.
       </Text>
@@ -357,10 +343,12 @@ import { WelcomeEmail } from '@/emails/welcome';
 import { render } from '@react-email/render';
 
 export async function sendWelcomeEmail(to: string, name: string) {
-  const html = render(WelcomeEmail({ 
-    name, 
-    loginUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard` 
-  }));
+  const html = render(
+    WelcomeEmail({
+      name,
+      loginUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+    }),
+  );
 
   return resend.emails.send({
     from: process.env.EMAIL_FROM!,
@@ -406,17 +394,19 @@ export function ResetPasswordEmail({ resetUrl, expiresIn }: ResetPasswordEmailPr
   return (
     <BaseLayout preview="Reset your password">
       <Heading style={heading}>Reset your password</Heading>
-      
+
       <Text style={text}>
-        We received a request to reset your password. Click the button below to choose a new password:
+        We received a request to reset your password. Click the button below to choose a new
+        password:
       </Text>
-      
+
       <Button style={button} href={resetUrl}>
         Reset Password
       </Button>
-      
+
       <Text style={smallText}>
-        This link will expire in {expiresIn}. If you didn't request this, you can safely ignore this email.
+        This link will expire in {expiresIn}. If you didn't request this, you can safely ignore this
+        email.
       </Text>
     </BaseLayout>
   );
@@ -452,25 +442,29 @@ export function OrderConfirmationEmail({
   return (
     <BaseLayout preview={`Order #${orderNumber} confirmed`}>
       <Heading style={heading}>Order Confirmed!</Heading>
-      
+
       <Text style={text}>
         Thank you for your order. Your order number is <strong>#{orderNumber}</strong>.
       </Text>
-      
+
       <Section style={orderSection}>
-        <Heading as="h2" style={subheading}>Order Summary</Heading>
-        
+        <Heading as="h2" style={subheading}>
+          Order Summary
+        </Heading>
+
         {items.map((item, index) => (
           <Row key={index} style={itemRow}>
             <Column>
-              <Text style={itemName}>{item.name} × {item.quantity}</Text>
+              <Text style={itemName}>
+                {item.name} × {item.quantity}
+              </Text>
             </Column>
             <Column align="right">
               <Text style={itemPrice}>${(item.price * item.quantity).toFixed(2)}</Text>
             </Column>
           </Row>
         ))}
-        
+
         <Row style={totalRow}>
           <Column>
             <Text style={totalLabel}>Total</Text>
@@ -480,9 +474,11 @@ export function OrderConfirmationEmail({
           </Column>
         </Row>
       </Section>
-      
+
       <Section>
-        <Heading as="h2" style={subheading}>Shipping Address</Heading>
+        <Heading as="h2" style={subheading}>
+          Shipping Address
+        </Heading>
         <Text style={text}>{shippingAddress}</Text>
       </Section>
     </BaseLayout>
@@ -501,10 +497,12 @@ import { ResetPasswordEmail } from '@/emails/reset-password';
 import { OrderConfirmationEmail } from '@/emails/order-confirmation';
 
 export async function sendWelcomeEmail(to: string, name: string) {
-  const html = render(WelcomeEmail({ 
-    name, 
-    loginUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard` 
-  }));
+  const html = render(
+    WelcomeEmail({
+      name,
+      loginUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+    }),
+  );
 
   return resend.emails.send({
     from: process.env.EMAIL_FROM!,
@@ -533,7 +531,7 @@ export async function sendOrderConfirmation(
     items: Array<{ name: string; quantity: number; price: number }>;
     total: number;
     shippingAddress: string;
-  }
+  },
 ) {
   const html = render(OrderConfirmationEmail(order));
 

@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
 
 const sans = Inter({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-  display: "swap",
+  subsets: ['latin'],
+  variable: '--font-geist-sans',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Neon usage analytics",
-  description: "Daily Neon consumption by project — stored in Postgres, synced via Vercel Cron.",
+  title: 'Neon usage analytics',
+  description: 'Daily Neon consumption by project — stored in Postgres, synced via Vercel Cron.',
 };
 
 export default function RootLayout({

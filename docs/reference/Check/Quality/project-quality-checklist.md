@@ -84,16 +84,16 @@
 - [ ] Transaction-ներ կապված գործողությունների համար
 - [ ] Soft delete կարևոր տվյալների համար
 - [ ] Պագինացիա ցանկերի համար
-- [ ] **Դերեր և լիմիտներ (բոլոր նախագծեր).** *(մանրամասն. 06-database.mdc)*
+- [ ] **Դերեր և լիմիտներ (բոլոր նախագծեր).** _(մանրամասն. 06-database.mdc)_
   - [ ] `app_user` ստեղծված DML-only իրավունքներով
   - [ ] `DATABASE_URL` օգտագործում է `app_user` (ոչ owner)
   - [ ] `DIRECT_URL` օգտագործում է owner (միայն միգրացիաներ)
-  - [ ] `statement_timeout` սահմանված *(ադապտիվ, տիրույթ 06-database-ում)*
+  - [ ] `statement_timeout` սահմանված _(ադապտիվ, տիրույթ 06-database-ում)_
   - [ ] `idle_in_transaction_session_timeout` սահմանված է
   - [ ] `lock_timeout` սահմանված է
 - [ ] **Դերեր և լիմիտներ (Size B/C).**
   - [ ] `readonly_user` ստեղծված (անալիտիկա/աջակցություն)
-  - [ ] `CONNECTION LIMIT` long-running backend-ի *(ադապտիվ, տիրույթ 06-database-ում)*
+  - [ ] `CONNECTION LIMIT` long-running backend-ի _(ադապտիվ, տիրույթ 06-database-ում)_
 - [ ] **Եթե Neon.**
   - [ ] Connection pooling միացված է
   - [ ] `directUrl` միգրացիաների համար
@@ -296,6 +296,7 @@
 ### Ֆիչը ավարտված է, երբ.
 
 #### Կոդ
+
 - [ ] Կոդը գրված և աշխատում է
 - [ ] TypeScript. 0 սխալ
 - [ ] ESLint. 0 errors, 0 warnings
@@ -307,21 +308,25 @@
 - [ ] Ֆայլեր ≤ 300 տող
 
 #### Թեստավորում
+
 - [ ] Unit թեստեր գրված են
 - [ ] Թեստերն անցնում են
 - [ ] Edge case-եր ծածկված են
 
 #### Փաստաթղթավորում
+
 - [ ] JSDoc հրապարակային ֆունկցիաների համար
 - [ ] PROGRESS.md թարմացվել է
 - [ ] API docs արդի են (եթե API կա)
 
 #### Անվտանգություն
+
 - [ ] Input validation
 - [ ] Մուտքի իրավունքները ստուգված են
 - [ ] Կոդում գաղտնիքներ չկան
 
 #### Որակ
+
 - [ ] Code review անցվել է
 - [ ] Self-review կատարվել է
 
@@ -335,36 +340,43 @@
 ## Self-Review
 
 ### Կոդ
+
 - [ ] Կարդացել եմ իր diff-ը
 - [ ] Կոդը հասկանալի է առանց իմ մեկնաբանությունների
 - [ ] Ժամանակավոր/debug կոդ չկա
 - [ ] TODO issue reference-ից զուրկ չկա
 
 ### Տիպացում
+
 - [ ] `any` չկա
 - [ ] `@ts-ignore` բացատրություն առանց չկա
 - [ ] Types export արված են
 
 ### Թեստեր
+
 - [ ] Նոր կոդը ծածկված է թեստերով
 - [ ] Edge case-եր ստուգված են
 - [ ] Թեստերը flaky չեն
 
 ### Անվտանգություն
+
 - [ ] Գաղտնիքների hardcode չկա
 - [ ] Input validation
 - [ ] Մուտքի իրավունքները ստուգված են
 
 ### Արտադրողականություն
+
 - [ ] N+1 query-ներ չկան
 - [ ] Ավելորդ re-render-ներ չկան
 
 ### Տվյալների բազա (եթե կա)
+
 - [ ] Միգրացիաներ աշխատում են
 - [ ] Ինդեքսներ ավելացված են
 - [ ] Breaking changes չկան
 
 ### API (եթե կա)
+
 - [ ] Backward compatible
 - [ ] Swagger-ը թարմացվել է
 ```
@@ -398,7 +410,7 @@
 ## Screenshots (UI-ի դեպքում)
 
 | Before | After |
-|--------|-------|
+| ------ | ----- |
 |        |       |
 
 ## Checklist
@@ -417,21 +429,25 @@
 
 ```markdown
 ## Կոդ
+
 - [ ] Բոլոր PR-ները merge արված են
 - [ ] Տարբերակը թարմացվել է
 - [ ] CHANGELOG-ը թարմացվել է
 
 ## Թեստավորում
+
 - [ ] Unit թեստերն անցնում են
 - [ ] Integration թեստերն անցնում են
 - [ ] E2E թեստերն անցնում են
 - [ ] Staging-ը թեստավորված է
 
 ## Տվյալների բազա
+
 - [ ] Միգրացիաները թեստավորված են
 - [ ] Backup-ը ստեղծված է
 
 ## Ինֆրակառուցվածք
+
 - [ ] Environment variables настроены
 - [ ] Мониторинг готов
 ```
@@ -440,6 +456,7 @@
 
 ```markdown
 ## Процесс
+
 - [ ] Deploy запущен
 - [ ] Health checks проходят
 - [ ] Smoke tests OK
@@ -447,6 +464,7 @@
 - [ ] Нет ошибок в логах
 
 ## Post-Deploy
+
 - [ ] Команда уведомлена
 - [ ] Issues закрыты
 ```
@@ -470,30 +488,36 @@
 
 ```markdown
 ## Функциональность
+
 - [ ] Код решает задачу
 - [ ] Edge cases обработаны
 - [ ] Нет очевидных багов
 
 ## Читаемость
+
 - [ ] Код понятен
 - [ ] Naming понятный
 - [ ] Структура логичная
 
 ## Архитектура
+
 - [ ] Соответствует проекту
 - [ ] SRP соблюдается
 - [ ] DRY соблюдается
 
 ## Тесты
+
 - [ ] Покрывают сценарии
 - [ ] Читаемые
 
 ## Безопасность
+
 - [ ] Нет vulnerabilities
 - [ ] Input validation
 - [ ] Authorization
 
 ## Производительность
+
 - [ ] Нет N+1
 - [ ] Нет obvious issues
 ```
@@ -504,23 +528,27 @@
 
 ```markdown
 ## Инициализация
+
 - [ ] Репозиторий создан
 - [ ] .gitignore настроен
 - [ ] README.md базовый
 
 ## Код
+
 - [ ] TypeScript (strict: true)
 - [ ] ESLint настроен
 - [ ] Prettier настроен
 - [ ] Path aliases (@/)
 
 ## Проект
+
 - [ ] Размер определён (A/B/C)
 - [ ] Структура папок создана
 - [ ] docs/ папка создана
 - [ ] PROGRESS.md создан
 
 ## Quality Automation (Step 3.1.1 from onboarding)
+
 - [ ] `pnpm add -D prettier vitest husky lint-staged @commitlint/cli @commitlint/config-conventional`
 - [ ] `pnpm husky init` + hooks: `.husky/pre-commit` (lint-staged), `.husky/commit-msg` (commitlint)
 - [ ] lint-staged config added to package.json
@@ -530,26 +558,31 @@
 - [ ] Dependabot: uncomment npm section in `.github/dependabot.yml`
 
 ## DevOps
+
 - [ ] CI/CD настроен (или Vercel/Railway auto)
 - [ ] .env.example создан
 - [ ] Environment variables задокументированы
 
 ## База данных
+
 - [ ] Prisma настроен
 - [ ] Начальная схема создана
 - [ ] Neon подключён (если используется)
 - [ ] `app_user` создан (см. 06-database)
 
 ## Хранилище файлов
+
 - [ ] Cloudflare R2 подключён (env vars заполнены)
 - [ ] `public/` используется только для статических ассетов (favicon, robots.txt)
 
 ## GitHub Settings (manual, developer does this)
+
 - [ ] Branch Protection on main: require "Quality checks" to pass
 - [ ] Secret Protection (Scanning) enabled: Settings > Code security > Enable
 - [ ] Dependabot enabled (already in repo if template used)
 
 ## Безопасность
+
 - [ ] Нет секретов в коде
 - [ ] CORS настроен
 - [ ] Helmet (если backend)
@@ -561,38 +594,38 @@
 
 ### Код
 
-| Метрика | Цель | Как измерить |
-|---------|------|--------------|
-| TypeScript errors | 0 | `tsc --noEmit` |
-| ESLint errors | 0 | `eslint .` |
-| Test coverage | ≥ 70% | `jest --coverage` |
-| Function length | ≤ 50 lines | ESLint rule |
-| File length | ≤ 300 lines | ESLint rule |
+| Метрика           | Цель        | Как измерить      |
+| ----------------- | ----------- | ----------------- |
+| TypeScript errors | 0           | `tsc --noEmit`    |
+| ESLint errors     | 0           | `eslint .`        |
+| Test coverage     | ≥ 70%       | `jest --coverage` |
+| Function length   | ≤ 50 lines  | ESLint rule       |
+| File length       | ≤ 300 lines | ESLint rule       |
 
 ### Performance
 
-| Метрика | Цель | Как измерить |
-|---------|------|--------------|
-| LCP | < 2.5s | Lighthouse |
-| INP | < 200ms | Lighthouse |
-| CLS | < 0.1 | Lighthouse |
+| Метрика     | Цель              | Как измерить    |
+| ----------- | ----------------- | --------------- |
+| LCP         | < 2.5s            | Lighthouse      |
+| INP         | < 200ms           | Lighthouse      |
+| CLS         | < 0.1             | Lighthouse      |
 | Bundle size | < 200KB (initial) | Bundle analyzer |
 
 ### CI/CD
 
-| Метрика | Цель | Как измерить |
-|---------|------|--------------|
-| CI success rate | ≥ 95% | GitHub Actions |
-| CI duration | < 10 min | GitHub Actions |
-| Deploy success | ≥ 99% | Deploy logs |
+| Метрика         | Цель     | Как измерить   |
+| --------------- | -------- | -------------- |
+| CI success rate | ≥ 95%    | GitHub Actions |
+| CI duration     | < 10 min | GitHub Actions |
+| Deploy success  | ≥ 99%    | Deploy logs    |
 
 ### Production
 
-| Метрика | Цель | Как измерить |
-|---------|------|--------------|
-| Availability | ≥ 99.9% | Monitoring |
-| Error rate | < 0.1% | Logs/metrics |
-| P99 latency | < 500ms | APM |
+| Метрика      | Цель    | Как измерить |
+| ------------ | ------- | ------------ |
+| Availability | ≥ 99.9% | Monitoring   |
+| Error rate   | < 0.1%  | Logs/metrics |
+| P99 latency  | < 500ms | APM          |
 
 ---
 

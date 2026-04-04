@@ -1,5 +1,5 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-import { base64UrlEncode } from "@/lib/auth/jwt-b64url";
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import { base64UrlEncode } from '@/lib/auth/jwt-b64url';
 
 function encodeJson(obj: unknown): string {
   const json = JSON.stringify(obj);
@@ -10,15 +10,15 @@ function encodeJson(obj: unknown): string {
  * Creates a compact HS256 JWT (Node-only). Used by the login route.
  */
 export function signSessionToken(secret: string, ttlSeconds: number): string {
-  const header = encodeJson({ alg: "HS256", typ: "JWT" });
+  const header = encodeJson({ alg: 'HS256', typ: 'JWT' });
   const now = Math.floor(Date.now() / 1000);
   const payload = encodeJson({
-    role: "viewer",
+    role: 'viewer',
     iat: now,
     exp: now + ttlSeconds,
   });
   const signingInput = `${header}.${payload}`;
-  const sig = createHmac("sha256", secret).update(signingInput).digest();
+  const sig = createHmac('sha256', secret).update(signingInput).digest();
   const sigPart = base64UrlEncode(sig);
   return `${signingInput}.${sigPart}`;
 }

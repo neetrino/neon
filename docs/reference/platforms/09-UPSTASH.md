@@ -28,11 +28,11 @@
 
 ### Pricing:
 
-| План | Стоимость | Requests |
-|------|-----------|----------|
-| Free | $0 | 10,000/day |
-| Pay-as-you-go | $0.2/100K requests | Unlimited |
-| Pro | $280/month | High throughput |
+| План          | Стоимость          | Requests        |
+| ------------- | ------------------ | --------------- |
+| Free          | $0                 | 10,000/day      |
+| Pay-as-you-go | $0.2/100K requests | Unlimited       |
+| Pro           | $280/month         | High throughput |
 
 ### Free tier:
 
@@ -57,6 +57,7 @@
 ### После создания:
 
 Получить credentials:
+
 - **UPSTASH_REDIS_REST_URL:** `https://xxx.upstash.io`
 - **UPSTASH_REDIS_REST_TOKEN:** `AXxxxx`
 
@@ -158,10 +159,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   // Получить IP
   const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1';
-  
+
   // Проверить лимит
   const { success, limit, reset, remaining } = await ratelimit.limit(ip);
-  
+
   if (!success) {
     return NextResponse.json(
       { error: 'Too many requests' },
@@ -172,10 +173,10 @@ export async function POST(request: NextRequest) {
           'X-RateLimit-Remaining': remaining.toString(),
           'X-RateLimit-Reset': reset.toString(),
         },
-      }
+      },
     );
   }
-  
+
   // Обработка запроса
   return NextResponse.json({ success: true });
 }
@@ -199,17 +200,14 @@ export async function middleware(request: NextRequest) {
   if (!request.nextUrl.pathname.startsWith('/api')) {
     return NextResponse.next();
   }
-  
+
   const ip = request.ip ?? '127.0.0.1';
   const { success } = await ratelimit.limit(ip);
-  
+
   if (!success) {
-    return NextResponse.json(
-      { error: 'Rate limit exceeded' },
-      { status: 429 }
-    );
+    return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   }
-  
+
   return NextResponse.next();
 }
 
@@ -243,13 +241,13 @@ const { success } = await ratelimit.limit(`user:${userId}`);
 
 ```typescript
 // Fixed Window - сбрасывается в конце периода
-Ratelimit.fixedWindow(10, '1 m')
+Ratelimit.fixedWindow(10, '1 m');
 
 // Sliding Window - плавное скольжение (рекомендуется)
-Ratelimit.slidingWindow(10, '1 m')
+Ratelimit.slidingWindow(10, '1 m');
 
 // Token Bucket - пополняемый bucket
-Ratelimit.tokenBucket(10, '1 m', 5) // max 10, refill 5/min
+Ratelimit.tokenBucket(10, '1 m', 5); // max 10, refill 5/min
 ```
 
 ---
@@ -265,18 +263,18 @@ import { redis } from './redis';
 export async function cached<T>(
   key: string,
   fn: () => Promise<T>,
-  ttlSeconds: number = 3600
+  ttlSeconds: number = 3600,
 ): Promise<T> {
   // Попробовать получить из кэша
   const cached = await redis.get<T>(key);
   if (cached !== null) {
     return cached;
   }
-  
+
   // Вычислить и сохранить
   const result = await fn();
   await redis.set(key, result, { ex: ttlSeconds });
-  
+
   return result;
 }
 
@@ -284,7 +282,7 @@ export async function cached<T>(
 const products = await cached(
   'products:featured',
   () => prisma.product.findMany({ where: { featured: true } }),
-  300 // 5 минут
+  300, // 5 минут
 );
 ```
 
@@ -296,23 +294,23 @@ export async function cachedWithTags<T>(
   key: string,
   tags: string[],
   fn: () => Promise<T>,
-  ttlSeconds: number = 3600
+  ttlSeconds: number = 3600,
 ): Promise<T> {
   const cached = await redis.get<T>(key);
   if (cached !== null) {
     return cached;
   }
-  
+
   const result = await fn();
-  
+
   // Сохранить данные
   await redis.set(key, result, { ex: ttlSeconds });
-  
+
   // Связать с тегами
   for (const tag of tags) {
     await redis.sadd(`tag:${tag}`, key);
   }
-  
+
   return result;
 }
 
@@ -328,7 +326,7 @@ export async function invalidateTag(tag: string): Promise<void> {
 const products = await cachedWithTags(
   `products:category:${categoryId}`,
   ['products', `category:${categoryId}`],
-  () => fetchProducts(categoryId)
+  () => fetchProducts(categoryId),
 );
 
 // При обновлении продукта
@@ -343,14 +341,14 @@ export async function getProducts() {
   return cached(
     'products:all',
     () => prisma.product.findMany(),
-    60 // 1 минута
+    60, // 1 минута
   );
 }
 
 // В Client Component с React Query
 const { data } = useQuery({
   queryKey: ['products'],
-  queryFn: () => fetch('/api/products').then(r => r.json()),
+  queryFn: () => fetch('/api/products').then((r) => r.json()),
   staleTime: 60 * 1000, // Синхронизировать с Redis TTL
 });
 ```
@@ -417,10 +415,10 @@ import { verifySignature } from '@upstash/qstash/nextjs';
 
 async function handler(request: Request) {
   const body = await request.json();
-  
+
   // Отправить email
   await sendEmail(body.to, body.subject, body.html);
-  
+
   return new Response('OK');
 }
 
@@ -432,14 +430,11 @@ export const POST = verifySignature(handler);
 
 ```typescript
 // При регистрации
-await enqueue(
-  'https://myapp.com/api/queue/email',
-  {
-    to: user.email,
-    subject: 'Welcome!',
-    template: 'welcome',
-  }
-);
+await enqueue('https://myapp.com/api/queue/email', {
+  to: user.email,
+  subject: 'Welcome!',
+  template: 'welcome',
+});
 ```
 
 ---
@@ -482,13 +477,9 @@ const SESSION_TTL = 7 * 24 * 60 * 60; // 7 days
 
 export async function createSession(userId: string): Promise<string> {
   const sessionId = nanoid();
-  
-  await redis.set(
-    `session:${sessionId}`,
-    { userId, createdAt: Date.now() },
-    { ex: SESSION_TTL }
-  );
-  
+
+  await redis.set(`session:${sessionId}`, { userId, createdAt: Date.now() }, { ex: SESSION_TTL });
+
   return sessionId;
 }
 

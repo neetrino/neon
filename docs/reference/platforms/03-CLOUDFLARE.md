@@ -75,13 +75,13 @@
 
 ### Գրառումների տիպեր.
 
-| Տիպ | Նշանակություն | Օրինակ |
-|-----|---------------|--------|
-| A | IPv4 հասցե | @ → 76.76.21.21 (Vercel) |
-| AAAA | IPv6 հասցե | @ → 2606:... |
-| CNAME | Alias | www → cname.vercel-dns.com |
-| MX | Email | @ → mail.provider.com |
-| TXT | Verification | @ → "v=spf1 ..." |
+| Տիպ   | Նշանակություն | Օրինակ                     |
+| ----- | ------------- | -------------------------- |
+| A     | IPv4 հասցե    | @ → 76.76.21.21 (Vercel)   |
+| AAAA  | IPv6 հասցե    | @ → 2606:...               |
+| CNAME | Alias         | www → cname.vercel-dns.com |
+| MX    | Email         | @ → mail.provider.com      |
+| TXT   | Verification  | @ → "v=spf1 ..."           |
 
 ### Vercel-ի համար.
 
@@ -107,9 +107,9 @@ Proxy: OFF (մոխրագույն ամպ) կամ ON
 
 ### Proxy Status.
 
-| Ստատուս | Արժեք |
-|---------|-------|
-| 🟠 Proxied | Տրաֆիկ Cloudflare-ով (CDN, WAF) |
+| Ստատուս     | Արժեք                                |
+| ----------- | ------------------------------------ |
+| 🟠 Proxied  | Տրաֆիկ Cloudflare-ով (CDN, WAF)      |
 | ⚪ DNS only | Միայն DNS, առանց Cloudflare features |
 
 ### Երբ անջատել Proxy.
@@ -128,12 +128,12 @@ Proxy: OFF (մոխրագույն ամպ) կամ ON
 
 ### Ռեժիմներ.
 
-| Ռեժիմ | Նկարագրություն | Երբ օգտագործել |
-|----------|-----------------|-----------------|
-| Off | HTTPS չկա | ❌ ԵՐԵՔԵԼԵՎ |
-| Flexible | HTTPS մինչև CF, HTTP մինչև origin | ⚠️ Խորհուրդ չի տրվում |
-| Full | HTTPS ամենուր, self-signed OK | Թեստավորման համար |
-| Full (strict) | HTTPS ամենուր, valid cert | ✅ ԽՈՐՀՈՒՐԴ ՏՐՎՈՒՄ |
+| Ռեժիմ         | Նկարագրություն                    | Երբ օգտագործել        |
+| ------------- | --------------------------------- | --------------------- |
+| Off           | HTTPS չկա                         | ❌ ԵՐԵՔԵԼԵՎ           |
+| Flexible      | HTTPS մինչև CF, HTTP մինչև origin | ⚠️ Խորհուրդ չի տրվում |
+| Full          | HTTPS ամենուր, self-signed OK     | Թեստավորման համար     |
+| Full (strict) | HTTPS ամենուր, valid cert         | ✅ ԽՈՐՀՈՒՐԴ ՏՐՎՈՒՄ    |
 
 ### Խորհուրդ տրվող կարգավորում.
 
@@ -148,7 +148,7 @@ Minimum TLS Version: 1.2
 
 1. SSL/TLS → Edge Certificates
 2. "Universal SSL" ավտոմատ միացված է
-3. Wildcard (*.example.com)-ի համար — կարգավորել
+3. Wildcard (\*.example.com)-ի համար — կարգավորել
 
 ---
 
@@ -175,7 +175,7 @@ Crawler Hints: ON
 ```
 Name: Cache static assets
 When: URI Path contains /static OR File Extension in (jpg, png, gif, css, js)
-Then: 
+Then:
   - Cache eligibility: Eligible for cache
   - Edge TTL: 1 month
   - Browser TTL: 1 week
@@ -202,17 +202,14 @@ Then:
 ```typescript
 // Կոնտենտի թարմացումից հետո
 async function purgeCache(urls: string[]) {
-  await fetch(
-    `https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/purge_cache`,
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${CF_API_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ files: urls }),
-    }
-  );
+  await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/purge_cache`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${CF_API_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ files: urls }),
+  });
 }
 ```
 
@@ -230,12 +227,12 @@ async function purgeCache(urls: string[]) {
 
 ### Pricing.
 
-| Ռեսուրս | Գին |
-|---------|-----|
-| Storage | $0.015 / GB / ամիս |
-| Class A ops (write) | $4.50 / million |
-| Class B ops (read) | $0.36 / million |
-| Egress | FREE |
+| Ռեսուրս             | Գին                |
+| ------------------- | ------------------ |
+| Storage             | $0.015 / GB / ամիս |
+| Class A ops (write) | $4.50 / million    |
+| Class B ops (read)  | $0.36 / million    |
+| Egress              | FREE               |
 
 ### Մուտքի կարգավորում.
 
@@ -275,18 +272,16 @@ const R2 = new S3Client({
 });
 
 // Ֆայլի բեռնում
-export async function uploadToR2(
-  key: string,
-  body: Buffer | Uint8Array,
-  contentType: string
-) {
-  await R2.send(new PutObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME,
-    Key: key,
-    Body: body,
-    ContentType: contentType,
-  }));
-  
+export async function uploadToR2(key: string, body: Buffer | Uint8Array, contentType: string) {
+  await R2.send(
+    new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    }),
+  );
+
   return `https://${process.env.R2_PUBLIC_URL}/${key}`;
 }
 
@@ -297,7 +292,7 @@ export async function getUploadUrl(key: string, contentType: string) {
     Key: key,
     ContentType: contentType,
   });
-  
+
   return await getSignedUrl(R2, command, { expiresIn: 3600 });
 }
 ```
@@ -365,7 +360,7 @@ Then: Rate limit
 
 ```
 Name: Protect Admin
-When: 
+When:
   http.request.uri.path starts with "/admin" AND
   NOT ip.src in {1.2.3.4 5.6.7.8}
 Then: Block
@@ -449,11 +444,11 @@ Settings:
 export default {
   async fetch(request) {
     const country = request.cf?.country;
-    
+
     if (country === 'DE') {
       return Response.redirect('https://de.example.com' + new URL(request.url).pathname, 302);
     }
-    
+
     return fetch(request);
   },
 };
@@ -488,12 +483,15 @@ export default {
 query {
   viewer {
     zones(filter: { zoneTag: $zoneTag }) {
-      httpRequests1dGroups(
-        limit: 7
-        filter: { date_gt: "2024-01-01" }
-      ) {
-        dimensions { date }
-        sum { requests bytes cachedBytes }
+      httpRequests1dGroups(limit: 7, filter: { date_gt: "2024-01-01" }) {
+        dimensions {
+          date
+        }
+        sum {
+          requests
+          bytes
+          cachedBytes
+        }
       }
     }
   }

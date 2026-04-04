@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/db";
-import { getEnv } from "@/lib/env";
-import { parseIsoDateOnly } from "@/lib/dates";
-import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
-import { NEON_USAGE_METRICS } from "@/lib/constants/neon-metrics";
-import { isIgnoredProjectId } from "@/lib/constants/ignored-projects";
-import { readMetricValue } from "@/lib/usage/metric-field";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/db';
+import { getEnv } from '@/lib/env';
+import { parseIsoDateOnly } from '@/lib/dates';
+import type { NeonUsageMetricName } from '@/lib/constants/neon-metrics';
+import { NEON_USAGE_METRICS } from '@/lib/constants/neon-metrics';
+import { isIgnoredProjectId } from '@/lib/constants/ignored-projects';
+import { readMetricValue } from '@/lib/usage/metric-field';
 import {
   applyPublicTransferAllowance,
   estimateProjectCost,
@@ -15,7 +15,7 @@ import {
   PRICING_RATES,
   toJsonTotals,
   type EstimatedProjectCost,
-} from "@/lib/usage/neon-conversions";
+} from '@/lib/usage/neon-conversions';
 
 const querySchema = z.object({
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -62,7 +62,7 @@ export async function GET(request: Request) {
   const toDate = parseIsoDateOnly(to);
 
   if (fromDate > toDate) {
-    return NextResponse.json({ error: "Invalid range" }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid range' }, { status: 400 });
   }
 
   const days = calendarDaysInclusive(fromDate, toDate);
@@ -74,7 +74,7 @@ export async function GET(request: Request) {
   const rows = await prisma.usageSnapshot.findMany({
     where: { snapshotDate: { gte: fromDate, lte: toDate } },
     include: { project: { select: { name: true } } },
-    orderBy: [{ neonProjectId: "asc" }, { snapshotDate: "asc" }],
+    orderBy: [{ neonProjectId: 'asc' }, { snapshotDate: 'asc' }],
   });
 
   type Acc = {

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 import {
   CartesianGrid,
   Line,
@@ -9,17 +9,17 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts";
-import { CHART_STROKES } from "@/components/dashboard/chart-colors";
-import type { RechartsRow } from "@/components/dashboard/chart-data";
-import { formatAbbrev } from "@/components/dashboard/DashboardWidgets";
+} from 'recharts';
+import { CHART_STROKES } from '@/components/dashboard/chart-colors';
+import type { RechartsRow } from '@/components/dashboard/chart-data';
+import { formatAbbrev } from '@/components/dashboard/DashboardWidgets';
 
-const CHART_GRID_STROKE = "rgba(24, 24, 27, 0.07)";
-const CHART_AXIS_LINE = "rgba(24, 24, 27, 0.12)";
-const TICK_FILL = "#71717a";
+const CHART_GRID_STROKE = 'rgba(24, 24, 27, 0.07)';
+const CHART_AXIS_LINE = 'rgba(24, 24, 27, 0.12)';
+const TICK_FILL = '#71717a';
 const LINE_DIM_OPACITY = 0.2;
 const LINE_NORMAL_OPACITY = 0.95;
-const SIDE_LIST_MAX_HEIGHT = "max-h-[17rem]";
+const SIDE_LIST_MAX_HEIGHT = 'max-h-[17rem]';
 
 type ProjectStats = {
   totalCostUsd: number;
@@ -61,7 +61,7 @@ function UsageTooltipContent({
 
   const valueById: Record<string, number> = {};
   for (const item of payload) {
-    if (typeof item.dataKey !== "string") {
+    if (typeof item.dataKey !== 'string') {
       continue;
     }
     valueById[item.dataKey] = toNumber(item.value);
@@ -80,8 +80,8 @@ function UsageTooltipContent({
                 {index + 1}. {projectNames[id] ?? id}
               </div>
               <div className="font-mono text-[11px] text-zinc-600">
-                now {formatAbbrev(valueById[id] ?? 0)} | cost {formatUsd(stats?.totalCostUsd ?? 0)} | cpu{" "}
-                {(stats?.computeCuHours ?? 0).toFixed(2)}
+                now {formatAbbrev(valueById[id] ?? 0)} | cost {formatUsd(stats?.totalCostUsd ?? 0)}{' '}
+                | cpu {(stats?.computeCuHours ?? 0).toFixed(2)}
               </div>
             </li>
           );
@@ -106,12 +106,13 @@ export function UsageLineChartPanel({
   projectStatsById: Record<string, ProjectStats>;
   metricTitle: string;
 }) {
-  const [activeProjectId, setActiveProjectId] = useState("");
-  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [activeProjectId, setActiveProjectId] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState('');
 
   const rankedProjectIds = useMemo(() => {
     return [...projectIds].sort((a, b) => {
-      const byCost = (projectStatsById[b]?.totalCostUsd ?? 0) - (projectStatsById[a]?.totalCostUsd ?? 0);
+      const byCost =
+        (projectStatsById[b]?.totalCostUsd ?? 0) - (projectStatsById[a]?.totalCostUsd ?? 0);
       if (byCost !== 0) {
         return byCost;
       }
@@ -139,7 +140,7 @@ export function UsageLineChartPanel({
         {selectedProjectId ? (
           <button
             type="button"
-            onClick={() => setSelectedProjectId("")}
+            onClick={() => setSelectedProjectId('')}
             className="rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
           >
             Clear highlight
@@ -172,7 +173,7 @@ export function UsageLineChartPanel({
                     width={48}
                   />
                   <Tooltip
-                    wrapperStyle={{ pointerEvents: "auto" }}
+                    wrapperStyle={{ pointerEvents: 'auto' }}
                     content={
                       <UsageTooltipContent
                         rankedProjectIds={rankedProjectIds}
@@ -194,11 +195,13 @@ export function UsageLineChartPanel({
                         strokeWidth={isFocused ? 3.5 : 2.5}
                         strokeOpacity={isDimmed ? LINE_DIM_OPACITY : LINE_NORMAL_OPACITY}
                         dot={false}
-                        activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff" }}
+                        activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }}
                         isAnimationActive={false}
                         onMouseEnter={() => setActiveProjectId(id)}
-                        onMouseLeave={() => setActiveProjectId("")}
-                        onClick={() => setSelectedProjectId((current) => (current === id ? "" : id))}
+                        onMouseLeave={() => setActiveProjectId('')}
+                        onClick={() =>
+                          setSelectedProjectId((current) => (current === id ? '' : id))
+                        }
                       />
                     );
                   })}
@@ -207,7 +210,9 @@ export function UsageLineChartPanel({
             </div>
 
             <aside className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Projects in chart</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                Projects in chart
+              </p>
               <p className="mt-1 text-[11px] text-zinc-500">One sorted list (scroll for more)</p>
               <div className={`mt-2 overflow-y-auto pr-1 ${SIDE_LIST_MAX_HEIGHT}`}>
                 <ul className="space-y-1.5">
@@ -218,13 +223,15 @@ export function UsageLineChartPanel({
                       <li key={`all-${id}`}>
                         <button
                           type="button"
-                          onClick={() => setSelectedProjectId((current) => (current === id ? "" : id))}
+                          onClick={() =>
+                            setSelectedProjectId((current) => (current === id ? '' : id))
+                          }
                           onMouseEnter={() => setActiveProjectId(id)}
-                          onMouseLeave={() => setActiveProjectId("")}
+                          onMouseLeave={() => setActiveProjectId('')}
                           className={`flex w-full items-start justify-between gap-2 rounded-md border px-2 py-1.5 text-left transition ${
                             isFocused
-                              ? "border-teal-300 bg-teal-50 text-zinc-900"
-                              : "border-zinc-200 bg-zinc-50/60 text-zinc-700 hover:bg-zinc-100"
+                              ? 'border-teal-300 bg-teal-50 text-zinc-900'
+                              : 'border-zinc-200 bg-zinc-50/60 text-zinc-700 hover:bg-zinc-100'
                           }`}
                           style={{ opacity: isDimmed ? 0.55 : 1 }}
                         >
@@ -233,7 +240,7 @@ export function UsageLineChartPanel({
                               {index + 1}. {projectNames[id] ?? id}
                             </span>
                             <span className="font-mono text-[11px] text-zinc-500">
-                              {formatUsd(projectStatsById[id]?.totalCostUsd ?? 0)} |{" "}
+                              {formatUsd(projectStatsById[id]?.totalCostUsd ?? 0)} |{' '}
                               {(projectStatsById[id]?.computeCuHours ?? 0).toFixed(2)} CU-hrs
                             </span>
                           </span>

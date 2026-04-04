@@ -56,13 +56,13 @@ CLERK_WEBHOOK_SIGNING_SECRET="whsec_..."
 
 ## 5. Ինչ արդեն կա նախագծում (էջեր)
 
-| Path | Նկարագրություն |
-|------|------------------|
-| `/[locale]/sign-in` | Clerk `<SignIn />` — մուտք |
-| `/[locale]/sign-up` | Clerk `<SignUp />` — գրանցում |
-| `/[locale]/account` | Հաշիվ. Dashboard, պատվերներ, հասցեներ, Account (Clerk profile) |
+| Path                           | Նկարագրություն                                                     |
+| ------------------------------ | ------------------------------------------------------------------ |
+| `/[locale]/sign-in`            | Clerk `<SignIn />` — մուտք                                         |
+| `/[locale]/sign-up`            | Clerk `<SignUp />` — գրանցում                                      |
+| `/[locale]/account`            | Հաշիվ. Dashboard, պատվերներ, հասցեներ, Account (Clerk profile)     |
 | `/[locale]/account/onboarding` | Գրանցումից հետո. հեռախոս + առաքման հասցե (User + Address Neon-ում) |
-| `/[locale]/account/manage` | Clerk UserProfile (email, password, security) |
+| `/[locale]/account/manage`     | Clerk UserProfile (email, password, security)                      |
 
 Header-ում account ikonkan տանում է `/account`; «Դուրս գալ» — account սայդբարի ներքևում։
 

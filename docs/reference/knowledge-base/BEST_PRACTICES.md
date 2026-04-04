@@ -6,14 +6,14 @@
 
 ## Կանոնների աղբյուրներ
 
-| Թեմա | Ֆայլ |
-|------|------|
-| Հիմնական կանոններ | `.cursor/rules/00-core.mdc` |
-| Կոդի ստանդարտներ | `.cursor/rules/00-core.mdc`, `03-typescript.mdc` |
-| Ճարտարապետություն | `.cursor/rules/01-architecture.mdc` |
-| TypeScript | `.cursor/rules/03-typescript.mdc` |
-| Անվտանգություն | `.cursor/rules/08-security.mdc` |
-| Սխալների մշակում | `.cursor/rules/12-error-handling.mdc` |
+| Թեմա              | Ֆայլ                                             |
+| ----------------- | ------------------------------------------------ |
+| Հիմնական կանոններ | `.cursor/rules/00-core.mdc`                      |
+| Կոդի ստանդարտներ  | `.cursor/rules/00-core.mdc`, `03-typescript.mdc` |
+| Ճարտարապետություն | `.cursor/rules/01-architecture.mdc`              |
+| TypeScript        | `.cursor/rules/03-typescript.mdc`                |
+| Անվտանգություն    | `.cursor/rules/08-security.mdc`                  |
+| Սխալների մշակում  | `.cursor/rules/12-error-handling.mdc`            |
 
 ## Արագ կանոններ
 

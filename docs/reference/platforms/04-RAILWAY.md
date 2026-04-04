@@ -30,19 +30,19 @@
 
 ### Pricing:
 
-| План | Стоимость | Включено |
-|------|-----------|----------|
-| Trial | Free | $5 credit, 500 hours |
-| Hobby | $5/месяц | $5 credit включён |
-| Pro | $20/месяц/member | Team features |
+| План  | Стоимость        | Включено             |
+| ----- | ---------------- | -------------------- |
+| Trial | Free             | $5 credit, 500 hours |
+| Hobby | $5/месяц         | $5 credit включён    |
+| Pro   | $20/месяц/member | Team features        |
 
 ### Usage-based pricing:
 
-| Ресурс | Цена |
-|--------|------|
-| vCPU | $0.000463 / minute |
-| RAM | $0.000231 / GB / minute |
-| Network egress | $0.10 / GB |
+| Ресурс         | Цена                    |
+| -------------- | ----------------------- |
+| vCPU           | $0.000463 / minute      |
+| RAM            | $0.000231 / GB / minute |
+| Network egress | $0.10 / GB              |
 
 ---
 
@@ -143,11 +143,11 @@ restartPolicyMaxRetries = 3
 
 ### Типы переменных:
 
-| Тип | Пример |
-|-----|--------|
-| Plain | `PORT=3000` |
-| Secret | `DATABASE_URL=postgresql://...` |
-| Reference | `${{Postgres.DATABASE_URL}}` |
+| Тип       | Пример                          |
+| --------- | ------------------------------- |
+| Plain     | `PORT=3000`                     |
+| Secret    | `DATABASE_URL=postgresql://...` |
+| Reference | `${{Postgres.DATABASE_URL}}`    |
 
 ### Reference Variables:
 
@@ -368,11 +368,11 @@ export class HealthController {
 
 ### Рекомендации:
 
-| Нагрузка | vCPU | RAM |
-|----------|------|-----|
-| Dev/Low | 0.5 | 512 MB |
-| Medium | 1 | 1 GB |
-| High | 2+ | 2+ GB |
+| Нагрузка | vCPU | RAM    |
+| -------- | ---- | ------ |
+| Dev/Low  | 0.5  | 512 MB |
+| Medium   | 1    | 1 GB   |
+| High     | 2+   | 2+ GB  |
 
 ---
 

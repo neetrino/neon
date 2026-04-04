@@ -9,6 +9,7 @@
 ## 🤖👤 8.1 Dependency scanning in CI (npm audit / Dependabot/Renovate)
 
 **Вариант А — в коде / CI (🤖):**
+
 - В GitHub Actions (или другой CI) добавить шаг: `npm audit --audit-level=high` (или `pnpm audit`, `yarn audit`). При наличии уязвимостей уровня high/critical пайплайн должен падать.
 - Опционально: шаг с Snyk или другим сканером по API, если настроен.
 
@@ -17,6 +18,7 @@
 ---
 
 **Вариант Б — вручную в репозитории (👤):**
+
 - **GitHub:** **Repository → Settings → Code security and analysis.** Включить **Dependabot alerts** и при желании **Dependabot security updates**. Тогда GitHub будет создавать PR с обновлениями уязвимых зависимостей.
 - **Renovate (альтернатива):** Установить приложение Renovate для репо и настроить (по умолчанию создаёт PR для обновлений). В конфиге можно включить только security fixes.
 
