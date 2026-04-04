@@ -1,50 +1,46 @@
-import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
-import { NEON_USAGE_METRIC_LABELS, NEON_USAGE_METRICS } from "@/lib/constants/neon-metrics";
+"use client";
+
+import { useEffect, useState } from "react";
 import type { ProjectRow, ProjectUsageAggregate } from "@/components/dashboard/types";
-import {
-  formatTotalsIntegerString,
-  sumStorageByteMonthStrings,
-} from "@/components/dashboard/usage-display-format";
+import { ProjectTableCards } from "@/components/dashboard/ProjectTableCards";
+import { ProjectTableList } from "@/components/dashboard/ProjectTableList";
 
-const TABLE_METRICS: NeonUsageMetricName[] = NEON_USAGE_METRICS.filter(
-  (m) => m !== "compute_unit_seconds",
-);
+const VIEW_STORAGE_KEY = "neon-dashboard-projects-view";
 
-function formatAvgPerDay(n: number): string {
-  if (!Number.isFinite(n)) {
-    return "—";
+type ViewMode = "cards" | "list";
+
+function readInitialView(): ViewMode {
+  if (typeof window === "undefined") {
+    return "cards";
   }
-  return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  return window.localStorage.getItem(VIEW_STORAGE_KEY) === "list" ? "list" : "cards";
 }
 
-function aggregateFor(
-  usageByProjectId: Map<string, ProjectUsageAggregate> | null,
-  id: string,
-): ProjectUsageAggregate | undefined {
-  return usageByProjectId?.get(id);
-}
-
-function Stat({
-  label,
-  value,
-  large,
-}: {
-  label: string;
-  value: string;
-  large?: boolean;
-}) {
+function ViewToggle({ mode, onChange }: { mode: ViewMode; onChange: (m: ViewMode) => void }) {
+  const base =
+    "flex-1 rounded-md px-3 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600/40";
   return (
     <div
-      className={`rounded-lg border border-zinc-100 bg-zinc-50/60 px-3 py-2 ${
-        large ? "border-teal-200/60 bg-teal-50/40" : ""
-      }`}
+      className="inline-flex rounded-lg border border-zinc-200 bg-zinc-100/90 p-1 shadow-sm"
+      role="group"
+      aria-label="Project layout"
     >
-      <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">{label}</p>
-      <p
-        className={`mt-1 font-mono text-zinc-900 tabular-nums ${large ? "text-lg font-semibold" : "text-sm"}`}
+      <button
+        type="button"
+        aria-pressed={mode === "cards"}
+        onClick={() => onChange("cards")}
+        className={`${base} ${mode === "cards" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-600 hover:text-zinc-900"}`}
       >
-        {value}
-      </p>
+        Cards
+      </button>
+      <button
+        type="button"
+        aria-pressed={mode === "list"}
+        onClick={() => onChange("list")}
+        className={`${base} ${mode === "list" ? "bg-white text-zinc-900 shadow-sm" : "text-zinc-600 hover:text-zinc-900"}`}
+      >
+        List
+      </button>
     </div>
   );
 }
@@ -58,99 +54,47 @@ export function ProjectTable({
   usageByProjectId: Map<string, ProjectUsageAggregate> | null;
   calendarDays: number | null;
 }) {
+  const [view, setView] = useState<ViewMode>("cards");
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setView(readInitialView());
+    setHydrated(true);
+  }, []);
+
+  const persistView = (m: ViewMode) => {
+    setView(m);
+    window.localStorage.setItem(VIEW_STORAGE_KEY, m);
+  };
+
   return (
     <section className="glass-card overflow-hidden">
-      <div className="border-b border-zinc-100 px-4 py-4 sm:px-5">
-        <h2 className="text-base font-semibold text-zinc-900">Projects</h2>
-        <p className="mt-1 text-xs text-zinc-500">Per-project totals for the dates in the sidebar.</p>
+      <div className="flex flex-col gap-3 border-b border-zinc-200 bg-zinc-50/50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div>
+          <h2 className="text-lg font-bold tracking-tight text-zinc-900">Projects</h2>
+          <p className="mt-0.5 text-xs text-zinc-500">Totals for the dates selected in the sidebar.</p>
+        </div>
+        {hydrated ? (
+          <ViewToggle mode={view} onChange={persistView} />
+        ) : (
+          <div className="h-10 w-40" aria-hidden />
+        )}
       </div>
 
-      <div className="space-y-4 p-4 sm:p-5">
+      <div className="p-4 sm:p-5">
         {projects.length === 0 ? (
           <p className="text-sm text-zinc-500">No projects yet.</p>
+        ) : view === "cards" ? (
+          <ProjectTableCards projects={projects} usageByProjectId={usageByProjectId} />
         ) : (
-          <ul className="grid list-none gap-4 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
-            {projects.map((p) => {
-              const u = aggregateFor(usageByProjectId, p.neonProjectId);
-              const storageSum = u
-                ? formatTotalsIntegerString(sumStorageByteMonthStrings(u.totals).toString())
-                : "—";
-              const cuTotal = u
-                ? formatTotalsIntegerString(u.totals.compute_unit_seconds)
-                : usageByProjectId
-                  ? "0"
-                  : "…";
-              const cuDay = u
-                ? formatAvgPerDay(u.averagesPerCalendarDay.compute_unit_seconds)
-                : usageByProjectId
-                  ? formatAvgPerDay(0)
-                  : "…";
-              return (
-                <li
-                  key={p.neonProjectId}
-                  className="flex flex-col rounded-xl border border-zinc-200/80 bg-white p-4 shadow-sm ring-1 ring-zinc-100"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate text-base font-semibold text-zinc-900">{p.name}</h3>
-                      <p
-                        className="mt-1 truncate font-mono text-[11px] text-zinc-400"
-                        title={p.neonProjectId}
-                      >
-                        {p.neonProjectId}
-                      </p>
-                    </div>
-                    {p.regionId ? (
-                      <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
-                        {p.regionId}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <p className="mt-3 text-xs text-zinc-500">
-                    Last snapshot:{" "}
-                    <span className="font-medium text-zinc-700">{p.lastSnapshotDate ?? "—"}</span>
-                  </p>
-
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    <Stat label="CU·s (period)" value={cuTotal} large />
-                    <Stat label="CU·s / day" value={cuDay} />
-                    <Stat label="Snapshots (rows)" value={u ? String(u.snapshotRows) : usageByProjectId ? "0" : "…"} />
-                    <Stat label="Storage Σ (B·mo)" value={storageSum} />
-                  </div>
-
-                  <div className="mt-4 border-t border-zinc-100 pt-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
-                      Other metrics
-                    </p>
-                    <dl className="mt-2 grid gap-2 sm:grid-cols-2">
-                      {TABLE_METRICS.map((m) => (
-                        <div key={m} className="flex min-w-0 flex-col">
-                          <dt className="truncate text-[11px] text-zinc-500">
-                            {NEON_USAGE_METRIC_LABELS[m]}
-                          </dt>
-                          <dd className="font-mono text-xs text-zinc-800">
-                            {u
-                              ? formatTotalsIntegerString(u.totals[m])
-                              : usageByProjectId
-                                ? "0"
-                                : "…"}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <ProjectTableList projects={projects} usageByProjectId={usageByProjectId} />
         )}
       </div>
 
       {calendarDays !== null ? (
-        <p className="border-t border-zinc-100 px-4 py-2.5 text-xs text-zinc-400 sm:px-5">
-          Averages use <span className="font-medium text-zinc-600">{calendarDays}</span> calendar days
-          in range.
+        <p className="border-t border-zinc-200 bg-zinc-50/30 px-4 py-2.5 text-xs text-zinc-500 sm:px-5">
+          Averages use <span className="font-semibold text-zinc-700">{calendarDays}</span> calendar
+          days in range.
         </p>
       ) : null}
     </section>
