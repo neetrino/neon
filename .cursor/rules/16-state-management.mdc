@@ -1,0 +1,13 @@
+---
+description: State — server vs client, React Query, forms, URL state.
+globs: ["**/*.tsx", "**/hooks/**", "**/store/**", "**/features/**"]
+alwaysApply: false
+---
+
+# State management
+
+- **Server state** — TanStack Query (or project standard) for API data; caching, invalidation, retries.
+- **Client UI state** — React state / Zustand (or project standard) — keep minimal.
+- **Forms** — React Hook Form + Zod (or project standard).
+- **URL state** — `useSearchParams` / `nuqs` for shareable filters.
+- **Do not** duplicate server data in global stores; **selectors** for derived data.

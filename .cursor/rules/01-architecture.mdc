@@ -1,0 +1,34 @@
+---
+description: Architecture — layers, feature modules, boundaries, project size layouts. Agent-requested when designing structure.
+globs: []
+alwaysApply: false
+---
+
+# Architecture
+
+## Layers (Clean-style)
+
+- **Presentation** (UI/API) → **Application** (use cases/services) → **Domain** (entities/rules) → **Infrastructure** (DB, external APIs).
+- Dependencies point **inward** — domain does not import from infrastructure.
+
+## By project size (from `TECH_CARD` / `99-project-size.mdc`)
+
+- **A (small):** `src/app`, `components`, `lib`, `types` — simple tree.
+- **B (medium):** `features/*` with `components`, `hooks`, `services`, `types`; `shared/` for UI and utils.
+- **C (large):** `apps/*`, `packages/*` monorepo; shared UI and domain packages.
+
+## Feature modules
+
+- Public API via `index.ts` — export only what other features need. No deep imports into internal paths.
+- **features/X** may depend on **shared**; **shared** must not depend on **features**. Cross-feature deps only when explicit and documented.
+
+## Patterns
+
+- **Composition over inheritance** for UI/logic.
+- **Dependency inversion** — inject abstractions (interfaces) for payments, mail, storage.
+
+## Checklist
+
+- [ ] Folder layout matches declared project size
+- [ ] No circular imports between features
+- [ ] No SQL or server-only secrets in client components

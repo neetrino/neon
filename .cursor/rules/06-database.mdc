@@ -1,0 +1,59 @@
+---
+description: PostgreSQL + Prisma — schema, migrations, Neon roles, pooling, timeouts. No raw SQL with user input.
+globs: ["**/prisma/**", "**/*.prisma", "**/db/**", "**/database/**", "**/migrations/**"]
+alwaysApply: false
+---
+
+# Database (PostgreSQL, Prisma)
+
+## Principles
+
+- **PostgreSQL** default for relational data; **Prisma** as ORM — avoid raw SQL unless necessary.
+- **All schema changes** via Prisma migrations — never hand-edit prod DB without a migration. Do not delete migration files manually; fix forward with new migrations.
+- **Indexes** for frequent filters, joins, and sorts — verify with `EXPLAIN` on hot paths.
+- **Parameterized queries only** — `$queryRaw` with parameters; never `$queryRawUnsafe` with concatenated user input. Dynamic `ORDER BY` / identifiers: **whitelist** allowed columns.
+
+## Prisma
+
+- `schema.prisma`: clear models, `@@map` for table names, `onDelete` behavior explicit, indexes on FKs and query paths.
+- Use **transactions** for multi-step writes that must succeed or roll back together.
+- **Pagination** on lists; avoid unbounded `findMany`.
+- N+1: use `include` / `select` / batching intentionally.
+
+## Neon + connection strings
+
+- **Runtime app** uses **`DATABASE_URL`** with **pooled** Neon host (`-pooler` / pooler endpoint) and **`app_user`** (DML-only), not the database owner.
+- **`DIRECT_URL`** (non-pooled, owner) — **migrations only** (`prisma migrate deploy`, introspection). Never use owner URL for serverless hot path.
+- **SSL**: `sslmode=require` in URLs.
+- Serverless (Vercel): low **connection_limit** on pooler URL; tune **pool_timeout**. See Neon docs for recommended limits.
+
+## Roles (blast radius)
+
+- Create **`app_user`**: `LOGIN`, `CONNECT`, `USAGE` on schema, `SELECT/INSERT/UPDATE/DELETE` on tables, `USAGE` on sequences — **no DDL** (no `CREATE`, `DROP`, `ALTER`).
+- **Owner** role for migrations only. If app is compromised, owner credentials must not be in runtime env.
+- After migrations, ensure new tables grant DML to `app_user` (default privileges or migration step).
+- Optional **readonly** role for analytics/reporting (Size B/C).
+
+## Session / statement limits (adaptive — align with team)
+
+Set on **`app_user`** (and analytics role if any):
+
+- `statement_timeout` — per query (e.g. 10–30s range by workload; ask before defaulting).
+- `idle_in_transaction_session_timeout` — kill stuck transactions.
+- `lock_timeout` — avoid indefinite lock waits.
+
+Defence-in-depth with app-level timeouts in `14-ops.mdc`.
+
+## Migrations workflow
+
+- Local: `pnpm prisma migrate dev --name descriptive_name`
+- CI/Prod: `pnpm prisma migrate deploy` once per deploy (single job; avoid parallel migrate from many instances — use migration lock pattern if needed).
+- Failed migration: **do not** delete migration SQL — fix schema and add a corrective migration; use `prisma migrate resolve` only when Prisma docs say so.
+
+## Checklist (runtime)
+
+- [ ] `app_user` exists with DML-only grants
+- [ ] `DATABASE_URL` = `app_user` + pooler
+- [ ] `DIRECT_URL` = owner, migrations only
+- [ ] Timeouts set on `app_user` role
+- [ ] No secrets in repo; connection strings in env only

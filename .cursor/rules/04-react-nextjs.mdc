@@ -1,0 +1,20 @@
+---
+description: React 19 + Next.js App Router — RSC default, client boundaries, performance.
+globs: ["**/*.tsx", "**/app/**", "**/components/**", "**/features/**"]
+alwaysApply: false
+---
+
+# React and Next.js
+
+- **Server Components by default** — add `'use client'` only when you need hooks, browser APIs, or event handlers.
+- **Named exports** for components; no default exports for route components if project forbids (see `00-core.mdc`).
+- **Colocate** feature code; avoid prop-drilling hell — use composition or context sparingly.
+- **Server state** — fetch on server or React Query on client per `16-state-management.mdc`.
+- **`next/image`** for images; **`next/link`** for navigation.
+- **Metadata** (`generateMetadata` / static) for SEO where applicable.
+- **Loading / error / not-found** UI for route segments.
+
+## Forbidden
+
+- Fetching secrets or DB in client components.
+- Huge client bundles — move data fetching and heavy logic server-side when possible.

@@ -1,0 +1,22 @@
+---
+description: Greenfield onboarding — brief → size → TECH_CARD → architecture → init → delivery.
+globs: []
+alwaysApply: false
+---
+
+# Project onboarding
+
+## Phases (summary)
+
+1. **Intake** — brief, audience, must-have features, design links, deadlines.
+2. **Size** — use [`99-project-size.mdc`](99-project-size.mdc); agree **A / B / C**; update the size line in [`00-core.mdc`](00-core.mdc).
+3. **TECH_CARD** — copy `docs/reference/templates/TECH_CARD_TEMPLATE.md` → `docs/TECH_CARD.md`; fill all sections; **no production code** until approved.
+4. **Architecture** — folder layout per size (A simple, B feature-based, C monorepo); stack from TECH_CARD; document in `docs/01-ARCHITECTURE.md`.
+5. **Init** — `pnpm` + app scaffold; `.env.example`; `docs/` minimal set; quality hooks per [`17-cicd.mdc`](17-cicd.mdc) and `docs/reference/workflows/ci-quality.yml.example`.
+6. **Build** — phases with `docs/PROGRESS.md`; conventional commits; checklist passes: [`docs/reference/Check/Quality/project-quality-checklist.md`](docs/reference/Check/Quality/project-quality-checklist.md).
+7. **Ship** — TECH_CARD final review; deploy env vars; migrations; monitoring per [`14-ops.mdc`](14-ops.mdc).
+
+## Pointers
+
+- Structure diagrams and long templates: `docs/reference/templates/`, `project-sizes/size-*-*.mdc`.
+- Credentials: ask developer when needed (`00-core.mdc`).

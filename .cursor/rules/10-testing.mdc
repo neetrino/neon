@@ -1,0 +1,14 @@
+---
+description: Testing — unit, integration, e2e, coverage targets for business logic.
+globs: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/tests/**", "**/__tests__/**"]
+alwaysApply: false
+---
+
+# Testing
+
+- **Unit tests** for pure logic and domain rules.
+- **Integration tests** for API + DB (test DB or containers) where valuable.
+- **E2E** for critical user flows (auth, checkout) — keep stable, not flaky.
+- **Coverage** — prioritize business logic (e.g. ≥70% for new domain code per project standard).
+- **Factories/fixtures** for test data; isolate tests — no shared mutable state.
+- Do not delete tests to green CI — fix code or update test if requirement changed.

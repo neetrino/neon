@@ -1,0 +1,15 @@
+---
+description: NestJS — modules, controllers, services, guards, pipes, validation.
+globs: ["**/api/**", "**/server/**", "**/backend/**", "**/*.service.ts", "**/*.controller.ts", "**/*.module.ts"]
+alwaysApply: false
+---
+
+# NestJS
+
+- **Thin controllers** — HTTP mapping + DTO validation only; business logic in **services**.
+- **Modules** per domain; clear boundaries; avoid circular module imports.
+- **DTOs** + `class-validator` / `class-transformer` for all inputs.
+- **Guards** for authz; **Interceptors** for logging/transform; **Exception filters** for consistent errors.
+- **Swagger** (`@nestjs/swagger`) if API is documented publicly.
+- **ConfigModule** for env — validate schema at startup (e.g. Joi/Zod).
+- **No secrets** in code; use `ConfigService` / env.

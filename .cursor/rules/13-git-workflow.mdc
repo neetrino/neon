@@ -1,0 +1,13 @@
+---
+description: Git — branches, conventional commits, PR hygiene.
+globs: [".github/**", "**/*"]
+alwaysApply: false
+---
+
+# Git workflow
+
+- **Branches:** `feature/*`, `bugfix/*`, `hotfix/*`; `main` protected; `develop` if team uses Git Flow.
+- **Conventional Commits** — `feat:`, `fix:`, `chore:`, `docs:` …
+- **PRs** — small, focused, green CI, description template, self-review first.
+- **No force-push** to `main`/`develop`; no secrets in commits.
+- **CHANGELOG** maintained if project ships versions.

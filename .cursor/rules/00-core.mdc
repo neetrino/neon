@@ -1,0 +1,105 @@
+---
+description: Core project rules for AI. Always applied. Domain rules load by globs. CONTEXT/token economy lives in User Rules only — do not duplicate here.
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Core
+
+Other `.mdc` files apply by **globs** and task. If a rule seems missing, check the file type matches that rule’s globs.
+
+## Project size
+
+If not decided: read [`99-project-size.mdc`](99-project-size.mdc), propose A/B/C with rationale, get confirmation, then replace the line below with e.g. `Size: B — medium, layout: feature-based`.
+
+`Size: NOT SET — follow 99-project-size.mdc`
+
+## Start of work
+
+1. Confirm project size (above).
+2. Ensure `docs/TECH_CARD.md` exists (copy from `docs/reference/templates/TECH_CARD_TEMPLATE.md` if needed), fill per template; wait for confirmation on stack choices.
+3. Read `docs/01-ARCHITECTURE.md`, `docs/TECH_CARD.md`, `README.md` (create from templates if missing).
+4. Propose architecture/folder layout if greenfield; wait for approval before large refactors.
+
+## Each task
+
+Understand the ask → inspect existing code → propose for large/risky changes → implement after agreement → keep docs in sync when behavior changes.
+
+## Never
+
+- **TS:** `any` (unless documented exception).
+- **UI:** inline styles (use CSS/Tailwind classes only).
+- **Magic numbers** — use named constants.
+- **Duplication** — DRY.
+- **Size:** functions > 50 lines; files > 300 lines; nesting > 3 levels (use early returns).
+- **Prod:** `console.log` — use logger.
+- **Dead:** commented-out code — remove.
+- **Secrets** in code/commits — env only.
+- **SQL:** no string-concatenated user input; parameterized / prepared only.
+- **eval** and similar — never.
+- **CORS/CSRF off** without explicit approval.
+- **Architecture / deps / public API** changes without agreement or strong rationale.
+- **Remove tests** or **ignore lint** to “pass” CI.
+
+## Always
+
+- TypeScript **strict**; explicit types at boundaries.
+- **Named exports** (no default exports).
+- **Validate** external input at boundaries.
+- **Handle errors** with logging; no silent swallow in production paths.
+- **JSDoc** on exported public APIs where non-obvious.
+
+## Structure
+
+- One file, one responsibility.
+- Group by **feature**, not by file type only.
+- Shared UI/utils in `shared` / `common`.
+- Constants in dedicated files.
+
+## Decisions
+
+**Hard (apply without asking):** security baseline (argon2 for passwords, validate input, helmet/CORS where applicable), TS strict, named exports, error handling, `pnpm` + Prisma per TECH_CARD.
+
+**Adaptive (ask before picking values):** timeouts, pool limits, rate limits, cache TTL — explain options and tradeoffs; never silently use a generic default like `statement_timeout=30s` without team alignment.
+
+**Autonomous:** naming, internal file layout, small refactors (&lt;50 lines), obvious bugfixes, formatting.
+
+**Requires approval:** architecture, stack/libraries, folder layout, DB schema, removing/renaming public API, business-logic changes.
+
+**Proposal format:** context → options with pros/cons → recommendation → wait for confirmation.
+
+## Secrets and credentials
+
+Do not invent accounts or keys. Ask the developer when `DATABASE_URL`, OAuth, R2, deploy keys, etc. are needed. Do not commit code with `YOUR_API_KEY_HERE` placeholders and continue — stop and request credentials.
+
+## Human checklists
+
+Full DoD/PR/release checklists: [`docs/reference/Check/Quality/project-quality-checklist.md`](docs/reference/Check/Quality/project-quality-checklist.md) (not loaded as Cursor rules — open when needed).
+
+## Rules index (by domain)
+
+| Area | File |
+|------|------|
+| Architecture | `01-architecture.mdc` |
+| TypeScript | `03-typescript.mdc` |
+| React / Next | `04-react-nextjs.mdc` |
+| NestJS | `05-backend-nestjs.mdc` |
+| Database | `06-database.mdc` |
+| API | `07-api-design.mdc` |
+| Security | `08-security.mdc` |
+| Figma | `09-figma-design.mdc` |
+| Testing | `10-testing.mdc` |
+| Docs | `11-documentation.mdc` |
+| Errors | `12-error-handling.mdc` |
+| Git | `13-git-workflow.mdc` |
+| Ops + reliability | `14-ops.mdc` |
+| Performance | `15-performance.mdc` |
+| State | `16-state-management.mdc` |
+| CI/CD | `17-cicd.mdc` |
+| i18n | `20-i18n.mdc` |
+| Onboarding | `21-project-onboarding.mdc` |
+| Project size | `99-project-size.mdc` |
+
+Platform how-tos: `docs/reference/platforms/`.
+
+**Version:** 3.0 · **Date:** 2026-04-02
