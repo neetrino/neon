@@ -94,8 +94,10 @@ export type CostSummary = {
   vercelBandwidthUsd: number;
   vercelFunctionsPlusEdgeUsd: number;
   vercelBuildUsd: number;
-  /** Pro/Enterprise plan subscription fee (team-level, not per-project). */
+  /** Pro/Enterprise plan subscription fee from invoices (authoritative). */
   vercelPlanUsd: number;
+  /** Number of invoices overlapping the selected date range. */
+  vercelInvoiceCount: number;
 };
 
 export type VercelBreakdownPoint = {

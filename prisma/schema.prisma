@@ -81,6 +81,25 @@ model VercelDailyCharge {
   @@map("vercel_daily_charges")
 }
 
+/// One row per Vercel invoice. Stores the authoritative billed amounts
+/// per billing group so we can show accurate plan costs in the dashboard.
+model VercelInvoice {
+  id            String   @id @map("id")
+  invoiceNumber String   @map("invoice_number")
+  issuedAt      DateTime @map("issued_at")
+  periodStart   DateTime @map("period_start")
+  periodEnd     DateTime @map("period_end")
+  amountDue     Decimal  @map("amount_due") @db.Decimal(18, 4)
+  /// Amount from the "devex" group = subscription fee (Pro/Enterprise)
+  platformFeeUsd Decimal @map("platform_fee_usd") @db.Decimal(18, 4)
+  /// Amount from the "managed-infra" group = usage overages
+  infraUsd      Decimal  @map("infra_usd") @db.Decimal(18, 4)
+  currency      String   @default("usd")
+
+  @@index([periodStart])
+  @@map("vercel_invoices")
+}
+
 model VercelSyncRun {
   id           String    @id @default(cuid())
   startedAt    DateTime  @default(now()) @map("started_at")

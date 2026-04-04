@@ -221,12 +221,14 @@ export async function GET(request: Request) {
 
   const days = calendarDaysInclusive(fromDate, toDate);
 
-  const [neonResult, vercelProjects, teamCharges] = await Promise.all([
+  const [neonResult, vercelProjects, invoices] = await Promise.all([
     provider !== 'vercel' ? buildNeonProjects(fromDate, toDate, days) : null,
     provider !== 'neon' ? buildVercelProjects(fromDate, toDate) : null,
+    // Invoices issued within the selected date range (issuedAt covers the period ending on that date)
     provider !== 'neon'
-      ? prisma.vercelDailyCharge.findMany({
-          where: { chargeDate: { gte: fromDate, lte: toDate }, vercelProjectId: '' },
+      ? prisma.vercelInvoice.findMany({
+          where: { issuedAt: { gte: fromDate, lte: new Date(toDate.getTime() + 86_400_000) } },
+          orderBy: { issuedAt: 'asc' },
         })
       : null,
   ]);
@@ -254,19 +256,10 @@ export async function GET(request: Request) {
     0,
   );
 
-  // Team-level charges (Pro plan, Speed Insights, etc.) — vercelProjectId = ''
-  let vercelPlanUsd = 0;
-  let vercelTeamOtherUsd = 0;
-  for (const c of teamCharges ?? []) {
-    const usd = Number(c.billedCost);
-    if (c.serviceCategory === 'plan') {
-      vercelPlanUsd += usd;
-    } else {
-      vercelTeamOtherUsd += usd;
-    }
-  }
+  // Use authoritative invoice data for plan subscription fee
+  const vercelPlanUsd = (invoices ?? []).reduce((sum, inv) => sum + Number(inv.platformFeeUsd), 0);
 
-  const vercelTotalUsd = vercelProjectsTotal + vercelPlanUsd + vercelTeamOtherUsd;
+  const vercelTotalUsd = vercelProjectsTotal + vercelPlanUsd;
 
   return NextResponse.json({
     from,
@@ -284,6 +277,7 @@ export async function GET(request: Request) {
       vercelFunctionsPlusEdgeUsd,
       vercelBuildUsd,
       vercelPlanUsd,
+      vercelInvoiceCount: (invoices ?? []).length,
     },
     projects: allProjects,
   });

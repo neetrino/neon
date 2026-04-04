@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
 import { syncVercelForDay } from '@/lib/sync-vercel/sync-vercel-day';
+import { syncVercelInvoices } from '@/lib/vercel/sync-vercel-invoices';
 
 type RunVercelSyncParams = {
   token: string;
@@ -24,11 +25,16 @@ export async function runVercelSync(params: RunVercelSyncParams): Promise<RunVer
   });
 
   try {
-    const { rows } = await syncVercelForDay({
-      token: params.token,
-      teamId: params.teamId,
-      targetDay: params.targetDay,
-    });
+    const [{ rows }, invoiceRows] = await Promise.all([
+      syncVercelForDay({
+        token: params.token,
+        teamId: params.teamId,
+        targetDay: params.targetDay,
+      }),
+      syncVercelInvoices(),
+    ]);
+
+    logger.debug({ invoiceRows }, 'Synced Vercel invoices');
 
     await prisma.vercelSyncRun.update({
       where: { id: run.id },
