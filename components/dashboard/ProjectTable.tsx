@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ProjectRow, ProjectUsageAggregate } from "@/components/dashboard/types";
 import { ProjectTableCards } from "@/components/dashboard/ProjectTableCards";
 import { ProjectTableList } from "@/components/dashboard/ProjectTableList";
+import { sortProjectsByEstimatedCost } from "@/components/dashboard/project-table-shared";
 
 const VIEW_STORAGE_KEY = "neon-dashboard-projects-view";
 
@@ -56,6 +57,10 @@ export function ProjectTable({
 }) {
   const [view, setView] = useState<ViewMode>("cards");
   const [hydrated, setHydrated] = useState(false);
+  const sortedProjects = useMemo(
+    () => sortProjectsByEstimatedCost(projects, usageByProjectId),
+    [projects, usageByProjectId],
+  );
 
   useEffect(() => {
     setView(readInitialView());
@@ -82,12 +87,12 @@ export function ProjectTable({
       </div>
 
       <div className="p-4 sm:p-5">
-        {projects.length === 0 ? (
+        {sortedProjects.length === 0 ? (
           <p className="text-sm text-zinc-500">No projects yet.</p>
         ) : view === "cards" ? (
-          <ProjectTableCards projects={projects} usageByProjectId={usageByProjectId} />
+          <ProjectTableCards projects={sortedProjects} usageByProjectId={usageByProjectId} />
         ) : (
-          <ProjectTableList projects={projects} usageByProjectId={usageByProjectId} />
+          <ProjectTableList projects={sortedProjects} usageByProjectId={usageByProjectId} />
         )}
       </div>
 

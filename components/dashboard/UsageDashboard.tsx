@@ -41,6 +41,7 @@ export function UsageDashboard() {
   const [metric, setMetric] = useState<NeonUsageMetricName>("compute_unit_seconds");
   const [groupBy, setGroupBy] = useState<"day" | "month">("day");
   const [projectId, setProjectId] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [points, setPoints] = useState<SeriesPoint[]>([]);
   const [seriesDisplayUnit, setSeriesDisplayUnit] = useState<UsageSeriesResponse["displayUnit"]>("cu_hours");
@@ -58,26 +59,81 @@ export function UsageDashboard() {
     return m;
   }, [projects]);
 
+  const normalizedSearch = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
+
+  const filteredProjects = useMemo(() => {
+    if (!normalizedSearch) {
+      return projects;
+    }
+    return projects.filter((p) => p.name.toLowerCase().includes(normalizedSearch));
+  }, [normalizedSearch, projects]);
+
+  const visibleProjectIds = useMemo(() => {
+    return new Set(filteredProjects.map((p) => p.neonProjectId));
+  }, [filteredProjects]);
+
+  const filteredPoints = useMemo(() => {
+    if (!normalizedSearch) {
+      return points;
+    }
+    return points.map((point) => {
+      const byProject: Record<string, number> = {};
+      for (const [id, value] of Object.entries(point.byProject)) {
+        if (visibleProjectIds.has(id)) {
+          byProject[id] = value;
+        }
+      }
+      return { ...point, byProject };
+    });
+  }, [normalizedSearch, points, visibleProjectIds]);
+
+  const filteredTotalsPayload = useMemo(() => {
+    if (!totalsPayload) {
+      return null;
+    }
+    if (!normalizedSearch) {
+      return totalsPayload;
+    }
+    return {
+      ...totalsPayload,
+      projects: totalsPayload.projects.filter((p) => visibleProjectIds.has(p.neonProjectId)),
+    };
+  }, [normalizedSearch, totalsPayload, visibleProjectIds]);
+
   const usageByProjectId = useMemo(() => {
-    if (totalsPayload === null) {
+    if (filteredTotalsPayload === null) {
       return null;
     }
     const m = new Map<string, ProjectUsageAggregate>();
-    for (const p of totalsPayload.projects) {
+    for (const p of filteredTotalsPayload.projects) {
       m.set(p.neonProjectId, p);
     }
     return m;
-  }, [totalsPayload]);
+  }, [filteredTotalsPayload]);
+
+  const projectStatsById = useMemo(() => {
+    const stats: Record<string, { totalCostUsd: number; computeCuHours: number }> = {};
+    if (!filteredTotalsPayload) {
+      return stats;
+    }
+    for (const p of filteredTotalsPayload.projects) {
+      stats[p.neonProjectId] = {
+        totalCostUsd: p.estimatedCost.totalUsd,
+        computeCuHours: p.normalizedTotals.computeCuHours,
+      };
+    }
+    return stats;
+  }, [filteredTotalsPayload]);
 
   const compareBarData = useMemo(() => {
-    if (!totalsPayload) {
+    if (!filteredTotalsPayload) {
       return [];
     }
     const projs = projectId
-      ? totalsPayload.projects.filter((p) => p.neonProjectId === projectId)
-      : totalsPayload.projects;
+      ? filteredTotalsPayload.projects.filter((p) => p.neonProjectId === projectId)
+      : filteredTotalsPayload.projects;
     return buildCompareBarData(projs, compareMode);
-  }, [totalsPayload, projectId, compareMode]);
+  }, [filteredTotalsPayload, projectId, compareMode]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -118,23 +174,23 @@ export function UsageDashboard() {
     void load();
   }, [load]);
 
-  const { rows, projectIds } = useMemo(() => buildRechartsRows(points), [points]);
+  const { rows, projectIds } = useMemo(() => buildRechartsRows(filteredPoints), [filteredPoints]);
 
   const kpiProjects = useMemo(() => {
-    if (totalsPayload === null) {
+    if (filteredTotalsPayload === null) {
       return [];
     }
     return projectId
-      ? totalsPayload.projects.filter((p) => p.neonProjectId === projectId)
-      : totalsPayload.projects;
-  }, [totalsPayload, projectId]);
+      ? filteredTotalsPayload.projects.filter((p) => p.neonProjectId === projectId)
+      : filteredTotalsPayload.projects;
+  }, [filteredTotalsPayload, projectId]);
 
   const kpiSums = useMemo(() => {
-    if (totalsPayload === null) {
+    if (filteredTotalsPayload === null) {
       return null;
     }
     return sumDashboardKpis(kpiProjects);
-  }, [kpiProjects, totalsPayload]);
+  }, [kpiProjects, filteredTotalsPayload]);
 
   const metricTitleWithUnit = useMemo(() => {
     const unit = (() => {
@@ -165,7 +221,7 @@ export function UsageDashboard() {
         setGroupBy={setGroupBy}
         projectId={projectId}
         setProjectId={setProjectId}
-        projects={projects}
+        projects={filteredProjects}
         onRefresh={load}
         loading={loading}
       />
@@ -175,13 +231,25 @@ export function UsageDashboard() {
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
             <span className="text-gradient">Neon</span> usage
           </h1>
-          <button
-            type="button"
-            onClick={() => void logout()}
-            className="self-start rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
-          >
-            Sign out
-          </button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <label className="w-full sm:w-72">
+              <span className="sr-only">Search projects</span>
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search project by name..."
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-teal-600/40 focus:ring-2 focus:ring-teal-600/20"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => void logout()}
+              className="self-start rounded-lg border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50"
+            >
+              Sign out
+            </button>
+          </div>
         </header>
 
         <SyncPanel runs={runs} />
@@ -197,8 +265,8 @@ export function UsageDashboard() {
 
         <UsageKpiStrip
           loading={loading}
-          fromIso={totalsPayload?.from ?? range.from}
-          toIso={totalsPayload?.to ?? range.to}
+          fromIso={filteredTotalsPayload?.from ?? range.from}
+          toIso={filteredTotalsPayload?.to ?? range.to}
           sums={kpiSums}
           kpiScope={projectId ? "project" : "all"}
         />
@@ -227,7 +295,7 @@ export function UsageDashboard() {
               </button>
             </div>
           </div>
-          {loading && !totalsPayload ? (
+          {loading && !filteredTotalsPayload ? (
             <p className="text-sm text-zinc-500">Loading…</p>
           ) : (
             <ProjectCompareBars
@@ -242,13 +310,14 @@ export function UsageDashboard() {
           rows={rows}
           projectIds={projectIds}
           projectNames={projectNames}
+          projectStatsById={projectStatsById}
           metricTitle={metricTitleWithUnit}
         />
 
         <ProjectTable
-          projects={projects}
+          projects={filteredProjects}
           usageByProjectId={usageByProjectId}
-          calendarDays={totalsPayload?.calendarDays ?? null}
+          calendarDays={filteredTotalsPayload?.calendarDays ?? null}
         />
       </div>
     </div>
