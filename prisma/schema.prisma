@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model NeonProject {
+  neonProjectId String          @id @map("neon_project_id")
+  name          String
+  regionId      String?         @map("region_id")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  snapshots     UsageSnapshot[]
+
+  @@map("neon_projects")
+}
+
+model UsageSnapshot {
+  id                          String   @id @default(cuid())
+  neonProjectId               String   @map("neon_project_id")
+  snapshotDate                DateTime @db.Date @map("snapshot_date")
+  computeUnitSeconds          BigInt?  @map("compute_unit_seconds")
+  rootBranchBytesMonth        BigInt?  @map("root_branch_bytes_month")
+  childBranchBytesMonth       BigInt?  @map("child_branch_bytes_month")
+  instantRestoreBytesMonth    BigInt?  @map("instant_restore_bytes_month")
+  publicNetworkTransferBytes  BigInt?  @map("public_network_transfer_bytes")
+  privateNetworkTransferBytes BigInt?  @map("private_network_transfer_bytes")
+  extraBranchesMonth          BigInt?  @map("extra_branches_month")
+
+  project NeonProject @relation(fields: [neonProjectId], references: [neonProjectId], onDelete: Cascade)
+
+  @@unique([neonProjectId, snapshotDate])
+  @@index([snapshotDate])
+  @@map("usage_snapshots")
+}
+
+model SyncRun {
+  id           String    @id @default(cuid())
+  startedAt    DateTime  @default(now()) @map("started_at")
+  finishedAt   DateTime? @map("finished_at")
+  status       String
+  errorMessage String?   @map("error_message") @db.Text
+  rowsUpserted Int?      @map("rows_upserted")
+  targetDate   DateTime  @db.Date @map("target_date")
+
+  @@index([startedAt])
+  @@map("sync_runs")
+}

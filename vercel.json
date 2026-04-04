@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sync-neon-usage",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+:root {
+  --bg-page: #f4f4f5;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --border-subtle: rgba(24, 24, 27, 0.08);
+  --border-strong: rgba(24, 24, 27, 0.12);
+  --text-primary: #18181b;
+  --text-muted: #71717a;
+  --accent: #0d9488;
+  --accent-muted: rgba(13, 148, 136, 0.12);
+  --accent-ring: rgba(13, 148, 136, 0.35);
+  --danger: #dc2626;
+  --danger-surface: rgba(220, 38, 38, 0.08);
+  --success: #16a34a;
+  --success-surface: rgba(22, 163, 74, 0.1);
+  --warning-surface: rgba(217, 119, 6, 0.1);
+  --radius-lg: 0.75rem;
+  --shadow-card: 0 1px 2px rgba(24, 24, 27, 0.04);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --color-bg-deep: var(--bg-page);
+  --color-bg-elevated: var(--bg-elevated);
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.text-gradient {
+  color: var(--accent);
+}
