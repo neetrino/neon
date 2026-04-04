@@ -20,16 +20,12 @@ import type { ProjectRow } from "@/components/dashboard/types";
 import type { RechartsRow } from "@/components/dashboard/chart-data";
 import { formatAbbrev } from "@/components/dashboard/DashboardWidgets";
 
-type Preset = { label: string; days: number };
-
 export function UsageLineChartPanel({
   loading,
   rows,
   projectIds,
   projectNames,
-  presets,
-  preset,
-  onPreset,
+  rangeLabel,
   metric,
   setMetric,
   groupBy,
@@ -43,9 +39,7 @@ export function UsageLineChartPanel({
   rows: RechartsRow[];
   projectIds: string[];
   projectNames: Record<string, string>;
-  presets: readonly Preset[];
-  preset: Preset;
-  onPreset: (days: number) => void;
+  rangeLabel: string;
   metric: NeonUsageMetricName;
   setMetric: (m: NeonUsageMetricName) => void;
   groupBy: "day" | "month";
@@ -57,23 +51,15 @@ export function UsageLineChartPanel({
 }) {
   return (
     <section className="glass-card flex flex-col gap-4 p-5 sm:p-6">
+      <div className="rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2 text-sm text-zinc-400">
+        <span className="text-zinc-500">Time series uses the same range: </span>
+        <span className="font-mono text-zinc-200">{rangeLabel}</span>
+        <span className="text-zinc-500">
+          . Each point is summed usage for that day or month; metric and project filter apply only
+          here.
+        </span>
+      </div>
       <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center">
-        <div className="flex flex-wrap gap-2">
-          {presets.map((p) => (
-            <button
-              key={p.label}
-              type="button"
-              onClick={() => onPreset(p.days)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                preset.days === p.days
-                  ? "bg-cyan-500/20 text-cyan-100 ring-1 ring-cyan-500/40"
-                  : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
         <label className="flex items-center gap-2 text-sm text-zinc-400">
           <span className="whitespace-nowrap">Metric</span>
           <select

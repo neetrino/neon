@@ -38,3 +38,44 @@ export function bigintToChartSafeNumber(value: bigint): number {
   }
   return value > 0n ? Number.MAX_SAFE_INTEGER : -Number.MAX_SAFE_INTEGER;
 }
+
+/**
+ * Human-readable scale for summed byte·month (billing unit), not physical disk GB.
+ */
+export function formatByteMonthSumScaled(byteMonthSum: bigint): string {
+  if (byteMonthSum === 0n) {
+    return "0 B·mo";
+  }
+  const n = Number(byteMonthSum);
+  if (Number.isFinite(n) && n < Number.MAX_SAFE_INTEGER) {
+    const gib = n / 1024 ** 3;
+    if (gib >= 1024) {
+      return `${(gib / 1024).toFixed(2)} TiB·mo (sum)`;
+    }
+    if (gib >= 1) {
+      return `${gib.toFixed(2)} GiB·mo (sum)`;
+    }
+    const mib = n / 1024 ** 2;
+    if (mib >= 1) {
+      return `${mib.toFixed(1)} MiB·mo (sum)`;
+    }
+    const kib = n / 1024;
+    if (kib >= 1) {
+      return `${kib.toFixed(0)} KiB·mo (sum)`;
+    }
+    return `${n.toLocaleString("en-US")} B·mo (sum)`;
+  }
+  return `${formatTotalsIntegerString(byteMonthSum.toString())} B·mo (sum)`;
+}
+
+export function formatAvgBigIntPerDay(totalStr: string, calendarDays: number): string {
+  if (calendarDays < 1) {
+    return "–";
+  }
+  try {
+    const q = BigInt(totalStr) / BigInt(calendarDays);
+    return formatTotalsIntegerString(q.toString());
+  } catch {
+    return "–";
+  }
+}

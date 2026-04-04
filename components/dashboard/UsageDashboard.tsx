@@ -78,8 +78,11 @@ export function UsageDashboard() {
     if (!totalsPayload) {
       return [];
     }
-    return buildCompareBarData(totalsPayload.projects);
-  }, [totalsPayload]);
+    const projs = projectId
+      ? totalsPayload.projects.filter((p) => p.neonProjectId === projectId)
+      : totalsPayload.projects;
+    return buildCompareBarData(projs);
+  }, [totalsPayload, projectId]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -155,11 +158,11 @@ export function UsageDashboard() {
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-zinc-400">
             Daily snapshots from Neon&apos;s consumption API (v2), stored in Postgres. Cron syncs
-            yesterday once per day on Vercel. The bar chart compares total{" "}
-            <span className="text-zinc-300">compute (CU·s)</span> and summed{" "}
-            <span className="text-zinc-300">storage (byte·month)</span> per project; the line chart
-            shows any metric over time. Billing does not expose per-database splits or a separate
-            RAM series—compute covers provisioned compute for that period.
+            yesterday once per day on Vercel. Pick a date range below: both charts use the same{" "}
+            <span className="text-zinc-300">from → to</span> window. Bars rank projects by total
+            compute in that window; the line chart plots the selected metric over time. Billing does
+            not expose per-database splits or a separate RAM series—compute covers provisioned
+            compute for that period.
           </p>
         </div>
         <button
@@ -182,6 +185,40 @@ export function UsageDashboard() {
         </div>
       ) : null}
 
+      <section className="glass-card flex flex-col gap-3 p-5 sm:p-6">
+        <div>
+          <h2 className="text-lg font-medium text-zinc-100">Date range</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Applies to project totals (bar chart), the line chart, and the table. Presets count
+            calendar days through today (UTC).
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap gap-2">
+            {PRESETS.map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => onPreset(p.days)}
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                  preset.days === p.days
+                    ? "bg-cyan-500/20 text-cyan-100 ring-1 ring-cyan-500/40"
+                    : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-sm text-zinc-400">
+            <span className="text-zinc-500">Active range: </span>
+            <span className="font-mono text-zinc-200">
+              {range.from} → {range.to}
+            </span>
+          </p>
+        </div>
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard label="Total (selected metric)" value={formatAbbrev(totalForPeriod)} />
         <KpiCard label="Projects (in chart)" value={String(projectIds.length)} />
@@ -193,14 +230,27 @@ export function UsageDashboard() {
         <div>
           <h2 className="text-lg font-medium text-zinc-100">Project comparison</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Grouped bars: compute vs storage footprint (root + child + instant restore byte·month).
-            Sorted by compute. Left axis = CU·s, right axis = B·mo.
+            Totals for{" "}
+            <span className="font-mono text-zinc-400">
+              {range.from} → {range.to}
+            </span>
+            {projectId ? (
+              <>
+                {" "}
+                · filtered to one project (same as line chart &quot;Project&quot; selector).
+              </>
+            ) : (
+              <> · all projects with snapshots in range.</>
+            )}
           </p>
         </div>
         {loading && !totalsPayload ? (
           <p className="text-sm text-zinc-500">Loading comparison…</p>
         ) : (
-          <ProjectCompareBars data={compareBarData} />
+          <ProjectCompareBars
+            data={compareBarData}
+            calendarDays={totalsPayload?.calendarDays ?? 1}
+          />
         )}
       </section>
 
@@ -209,9 +259,7 @@ export function UsageDashboard() {
         rows={rows}
         projectIds={projectIds}
         projectNames={projectNames}
-        presets={PRESETS}
-        preset={preset}
-        onPreset={onPreset}
+        rangeLabel={`${range.from} → ${range.to}`}
         metric={metric}
         setMetric={setMetric}
         groupBy={groupBy}
