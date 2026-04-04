@@ -16,7 +16,7 @@ import {
   toJsonTotals,
   type EstimatedProjectCost,
 } from '@/lib/usage/neon-conversions';
-import { snapshotToCost } from '@/lib/vercel/vercel-conversions';
+import { VERCEL_CATEGORY_BUCKETS } from '@/lib/vercel/vercel-conversions';
 
 const querySchema = z.object({
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -125,100 +125,78 @@ async function buildNeonProjects(fromDate: Date, toDate: Date, days: number) {
   return { projects, periodHours, pricingPlan, pricingRates };
 }
 
+type ProjectCostAcc = {
+  name: string;
+  chargeRows: number;
+  buildUsd: number;
+  functionUsd: number;
+  bandwidthUsd: number;
+  planUsd: number;
+  otherUsd: number;
+};
+
 async function buildVercelProjects(fromDate: Date, toDate: Date) {
-  const snapshots = await prisma.vercelUsageSnapshot.findMany({
-    where: { snapshotDate: { gte: fromDate, lte: toDate } },
-    include: { project: { select: { name: true, framework: true } } },
-    orderBy: [{ vercelProjectId: 'asc' }, { snapshotDate: 'asc' }],
-  });
+  const [charges, allProjects] = await Promise.all([
+    prisma.vercelDailyCharge.findMany({
+      where: {
+        chargeDate: { gte: fromDate, lte: toDate },
+        vercelProjectId: { not: '' },
+      },
+      orderBy: [{ vercelProjectId: 'asc' }, { chargeDate: 'asc' }],
+    }),
+    prisma.vercelProject.findMany({ select: { vercelProjectId: true, name: true } }),
+  ]);
 
-  type Acc = {
-    vercelProjectId: string;
-    name: string;
-    snapshotRows: number;
-    bandwidthGb: number;
-    bandwidthUsd: number;
-    functionGbHours: number;
-    functionUsd: number;
-    edgeFunctionCpuMs: number;
-    edgeFunctionUsd: number;
-    buildMinutes: number;
-    buildUsd: number;
-    imageOptCount: number;
-    imageOptUsd: number;
-    otherUsd: number;
-  };
+  const projectNames = new Map(allProjects.map((p) => [p.vercelProjectId, p.name]));
 
-  const byProject = new Map<string, Acc>();
+  const byProject = new Map<string, ProjectCostAcc>();
 
-  for (const row of snapshots) {
+  for (const row of charges) {
     const id = row.vercelProjectId;
     let acc = byProject.get(id);
     if (!acc) {
       acc = {
-        vercelProjectId: id,
-        name: row.project.name,
-        snapshotRows: 0,
-        bandwidthGb: 0,
-        bandwidthUsd: 0,
-        functionGbHours: 0,
-        functionUsd: 0,
-        edgeFunctionCpuMs: 0,
-        edgeFunctionUsd: 0,
-        buildMinutes: 0,
+        name: projectNames.get(id) ?? id,
+        chargeRows: 0,
         buildUsd: 0,
-        imageOptCount: 0,
-        imageOptUsd: 0,
+        functionUsd: 0,
+        bandwidthUsd: 0,
+        planUsd: 0,
         otherUsd: 0,
       };
       byProject.set(id, acc);
     }
-    const cost = snapshotToCost(row);
-    acc.snapshotRows += 1;
-    acc.bandwidthGb += cost.bandwidthGb;
-    acc.bandwidthUsd += cost.bandwidthUsd;
-    acc.functionGbHours += cost.functionGbHours;
-    acc.functionUsd += cost.functionUsd;
-    acc.edgeFunctionCpuMs += cost.edgeFunctionCpuMs;
-    acc.edgeFunctionUsd += cost.edgeFunctionUsd;
-    acc.buildMinutes += cost.buildMinutes;
-    acc.buildUsd += cost.buildUsd;
-    acc.imageOptCount += cost.imageOptCount;
-    acc.imageOptUsd += cost.imageOptUsd;
-    acc.otherUsd += cost.otherUsd;
+    acc.chargeRows += 1;
+    const usd = Number(row.billedCost);
+    const bucket = VERCEL_CATEGORY_BUCKETS[row.serviceCategory] ?? 'other';
+    acc[`${bucket}Usd`] += usd;
   }
 
-  return [...byProject.values()]
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((p) => {
-      const totalUsd =
-        p.bandwidthUsd +
-        p.functionUsd +
-        p.edgeFunctionUsd +
-        p.buildUsd +
-        p.imageOptUsd +
-        p.otherUsd;
+  return [...byProject.entries()]
+    .sort((a, b) => a[1].name.localeCompare(b[1].name))
+    .map(([projectId, p]) => {
+      const totalUsd = p.buildUsd + p.functionUsd + p.bandwidthUsd + p.planUsd + p.otherUsd;
       return {
         provider: 'vercel' as const,
-        neonProjectId: p.vercelProjectId,
+        neonProjectId: projectId,
         name: p.name,
-        snapshotRows: p.snapshotRows,
+        snapshotRows: p.chargeRows,
         totals: null,
         rawTotals: null,
         normalizedTotals: null,
         estimatedCost: null,
         averagesPerCalendarDay: null,
         vercelCost: {
-          bandwidthGb: p.bandwidthGb,
+          bandwidthGb: 0,
           bandwidthUsd: p.bandwidthUsd,
-          functionGbHours: p.functionGbHours,
+          functionGbHours: 0,
           functionUsd: p.functionUsd,
-          edgeFunctionCpuMs: p.edgeFunctionCpuMs,
-          edgeFunctionUsd: p.edgeFunctionUsd,
-          buildMinutes: p.buildMinutes,
+          edgeFunctionCpuMs: 0,
+          edgeFunctionUsd: 0,
+          buildMinutes: 0,
           buildUsd: p.buildUsd,
-          imageOptCount: p.imageOptCount,
-          imageOptUsd: p.imageOptUsd,
+          imageOptCount: 0,
+          imageOptUsd: 0,
           otherUsd: p.otherUsd,
           totalUsd,
         },
@@ -243,12 +221,12 @@ export async function GET(request: Request) {
 
   const days = calendarDaysInclusive(fromDate, toDate);
 
-  const [neonResult, vercelProjects, vercelTeamSnapshots] = await Promise.all([
+  const [neonResult, vercelProjects, teamCharges] = await Promise.all([
     provider !== 'vercel' ? buildNeonProjects(fromDate, toDate, days) : null,
     provider !== 'neon' ? buildVercelProjects(fromDate, toDate) : null,
     provider !== 'neon'
-      ? prisma.vercelTeamSnapshot.findMany({
-          where: { snapshotDate: { gte: fromDate, lte: toDate } },
+      ? prisma.vercelDailyCharge.findMany({
+          where: { chargeDate: { gte: fromDate, lte: toDate }, vercelProjectId: '' },
         })
       : null,
   ]);
@@ -259,7 +237,7 @@ export async function GET(request: Request) {
     (sum, p) => sum + (p.estimatedCost?.totalUsd ?? 0),
     0,
   );
-  const vercelTotal = (vercelProjects ?? []).reduce(
+  const vercelProjectsTotal = (vercelProjects ?? []).reduce(
     (sum, p) => sum + (p.vercelCost?.totalUsd ?? 0),
     0,
   );
@@ -268,21 +246,27 @@ export async function GET(request: Request) {
     0,
   );
   const vercelFunctionsPlusEdgeUsd = (vercelProjects ?? []).reduce(
-    (sum, p) => sum + (p.vercelCost?.functionUsd ?? 0) + (p.vercelCost?.edgeFunctionUsd ?? 0),
+    (sum, p) => sum + (p.vercelCost?.functionUsd ?? 0),
     0,
   );
   const vercelBuildUsd = (vercelProjects ?? []).reduce(
     (sum, p) => sum + (p.vercelCost?.buildUsd ?? 0),
     0,
   );
-  const vercelPlanUsd = (vercelTeamSnapshots ?? []).reduce(
-    (sum, t) => sum + Number(t.planUsd ?? 0),
-    0,
-  );
-  const vercelTeamOtherUsd = (vercelTeamSnapshots ?? []).reduce(
-    (sum, t) => sum + Number(t.otherUsd ?? 0),
-    0,
-  );
+
+  // Team-level charges (Pro plan, Speed Insights, etc.) — vercelProjectId = ''
+  let vercelPlanUsd = 0;
+  let vercelTeamOtherUsd = 0;
+  for (const c of teamCharges ?? []) {
+    const usd = Number(c.billedCost);
+    if (c.serviceCategory === 'plan') {
+      vercelPlanUsd += usd;
+    } else {
+      vercelTeamOtherUsd += usd;
+    }
+  }
+
+  const vercelTotalUsd = vercelProjectsTotal + vercelPlanUsd + vercelTeamOtherUsd;
 
   return NextResponse.json({
     from,
@@ -294,8 +278,8 @@ export async function GET(request: Request) {
     provider,
     costSummary: {
       neonTotalUsd: neonTotal,
-      vercelTotalUsd: vercelTotal + vercelPlanUsd + vercelTeamOtherUsd,
-      grandTotalUsd: neonTotal + vercelTotal + vercelPlanUsd + vercelTeamOtherUsd,
+      vercelTotalUsd,
+      grandTotalUsd: neonTotal + vercelTotalUsd,
       vercelBandwidthUsd,
       vercelFunctionsPlusEdgeUsd,
       vercelBuildUsd,

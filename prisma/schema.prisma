@@ -50,56 +50,35 @@ model SyncRun {
 }
 
 model VercelProject {
-  vercelProjectId String                @id @map("vercel_project_id")
+  vercelProjectId String   @id @map("vercel_project_id")
   name            String
   framework       String?
-  updatedAt       DateTime              @updatedAt @map("updated_at")
-  snapshots       VercelUsageSnapshot[]
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@map("vercel_projects")
 }
 
-/// One row per project per billing period (month). snapshotDate = first day of billing month.
-/// USD amounts come directly from the Vercel billing charges API.
-model VercelUsageSnapshot {
-  id               String   @id @default(cuid())
-  vercelProjectId  String   @map("vercel_project_id")
-  /// First day of the billing month (e.g. 2024-01-01).
-  snapshotDate     DateTime @db.Date @map("snapshot_date")
-  bandwidthGb      Decimal? @map("bandwidth_gb") @db.Decimal(18, 6)
-  bandwidthUsd     Decimal? @map("bandwidth_usd") @db.Decimal(18, 6)
-  functionGbHours  Decimal? @map("function_gb_hours") @db.Decimal(18, 6)
-  functionUsd      Decimal? @map("function_usd") @db.Decimal(18, 6)
-  edgeFunctionCpuMs Decimal? @map("edge_function_cpu_ms") @db.Decimal(18, 2)
-  edgeFunctionUsd  Decimal? @map("edge_function_usd") @db.Decimal(18, 6)
-  buildMinutes     Decimal? @map("build_minutes") @db.Decimal(18, 4)
-  buildUsd         Decimal? @map("build_usd") @db.Decimal(18, 6)
-  imageOptCount    Int?     @map("image_opt_count")
-  imageOptUsd      Decimal? @map("image_opt_usd") @db.Decimal(18, 6)
-  otherUsd         Decimal? @map("other_usd") @db.Decimal(18, 6)
-  totalUsd         Decimal? @map("total_usd") @db.Decimal(18, 6)
+/// One row per calendar day per project (or team) per service.
+/// chargeDate = UTC calendar date derived from ChargePeriodStart.
+/// vercelProjectId = '' (empty string) for team-level charges (Pro plan, etc.)
+///   — non-nullable to allow composite unique constraint with upsert.
+model VercelDailyCharge {
+  id              String   @id @default(cuid())
+  chargeDate      DateTime @db.Date @map("charge_date")
+  /// Empty string for team-level charges (Pro plan, Speed Insights, etc.).
+  vercelProjectId String   @map("vercel_project_id")
+  serviceName     String   @map("service_name")
+  /// Cost bucket: "plan" | "build" | "function" | "bandwidth" | "other"
+  serviceCategory String   @map("service_category")
+  consumedQty     Decimal  @map("consumed_qty") @db.Decimal(24, 10)
+  consumedUnit    String   @map("consumed_unit")
+  billedCost      Decimal  @map("billed_cost") @db.Decimal(18, 8)
+  effectiveCost   Decimal  @map("effective_cost") @db.Decimal(18, 8)
 
-  project VercelProject @relation(fields: [vercelProjectId], references: [vercelProjectId], onDelete: Cascade)
-
-  @@unique([vercelProjectId, snapshotDate])
-  @@index([snapshotDate])
-  @@map("vercel_usage_snapshots")
-}
-
-/// Team-level Vercel charges per billing month (plan fee, non-project usage).
-/// snapshotDate = first day of billing month.
-model VercelTeamSnapshot {
-  id           String   @id @default(cuid())
-  snapshotDate DateTime @db.Date @map("snapshot_date")
-  /// Pro/Enterprise plan license fee for the month.
-  planUsd      Decimal? @map("plan_usd") @db.Decimal(18, 6)
-  /// All other team-level charges without a projectId.
-  otherUsd     Decimal? @map("other_usd") @db.Decimal(18, 6)
-  totalUsd     Decimal? @map("total_usd") @db.Decimal(18, 6)
-
-  @@unique([snapshotDate])
-  @@index([snapshotDate])
-  @@map("vercel_team_snapshots")
+  @@unique([chargeDate, vercelProjectId, serviceName])
+  @@index([chargeDate])
+  @@index([vercelProjectId])
+  @@map("vercel_daily_charges")
 }
 
 model VercelSyncRun {

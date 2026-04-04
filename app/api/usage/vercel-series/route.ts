@@ -2,16 +2,17 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { parseIsoDateOnly } from '@/lib/dates';
-import { snapshotToCost } from '@/lib/vercel/vercel-conversions';
 import type { VercelBreakdownPoint, VercelSeriesResponse } from '@/components/dashboard/types';
 
 const querySchema = z.object({
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  /** "day" for daily resolution, "month" for monthly aggregation (default: auto). */
+  groupBy: z.enum(['day', 'month']).optional(),
 });
 
-function monthKey(date: Date): string {
-  return date.toISOString().slice(0, 7);
+function daysBetween(from: Date, to: Date): number {
+  return Math.round((to.getTime() - from.getTime()) / 86_400_000) + 1;
 }
 
 export async function GET(request: Request) {
@@ -29,51 +30,85 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Invalid range' }, { status: 400 });
   }
 
-  const snapshots = await prisma.vercelUsageSnapshot.findMany({
-    where: { snapshotDate: { gte: fromDate, lte: toDate } },
-    include: { project: { select: { name: true } } },
-    orderBy: [{ snapshotDate: 'asc' }],
-  });
+  // Auto groupBy: daily for <= 90 days, monthly for longer ranges
+  const totalDays = daysBetween(fromDate, toDate);
+  const groupBy = parsed.data.groupBy ?? (totalDays <= 90 ? 'day' : 'month');
+
+  const [charges, allProjects] = await Promise.all([
+    prisma.vercelDailyCharge.findMany({
+      where: { chargeDate: { gte: fromDate, lte: toDate } },
+      orderBy: [{ chargeDate: 'asc' }, { vercelProjectId: 'asc' }],
+    }),
+    prisma.vercelProject.findMany({ select: { vercelProjectId: true, name: true } }),
+  ]);
 
   const projectNames: Record<string, string> = {};
+  for (const p of allProjects) {
+    projectNames[p.vercelProjectId] = p.name;
+  }
+
+  function periodKey(date: Date): string {
+    const iso = date.toISOString();
+    return groupBy === 'day' ? iso.slice(0, 10) : iso.slice(0, 7);
+  }
+
+  // Chart 1: total billed cost per project per period (project-level only, exclude team)
   const costByPeriod = new Map<string, Record<string, number>>();
+  // Chart 2: category breakdown per period (all charges including team-level)
   const breakdownByPeriod = new Map<string, VercelBreakdownPoint>();
 
-  for (const row of snapshots) {
-    const pid = row.vercelProjectId;
-    const period = monthKey(row.snapshotDate);
-    projectNames[pid] = row.project.name;
+  for (const row of charges) {
+    const period = periodKey(row.chargeDate);
+    const usd = Number(row.billedCost);
 
-    const cost = snapshotToCost(row);
-
-    // Chart 1: total cost per project per month
-    let byProject = costByPeriod.get(period);
-    if (!byProject) {
-      byProject = {};
-      costByPeriod.set(period, byProject);
+    // Project cost line chart
+    if (row.vercelProjectId !== '') {
+      let byProject = costByPeriod.get(period);
+      if (!byProject) {
+        byProject = {};
+        costByPeriod.set(period, byProject);
+      }
+      byProject[row.vercelProjectId] = (byProject[row.vercelProjectId] ?? 0) + usd;
     }
-    byProject[pid] = (byProject[pid] ?? 0) + cost.totalUsd;
 
-    // Chart 2: category breakdown per month (aggregated across projects)
+    // Category breakdown
     let bp = breakdownByPeriod.get(period);
     if (!bp) {
       bp = { period, bandwidthUsd: 0, functionsPlusEdgeUsd: 0, buildUsd: 0, otherUsd: 0 };
       breakdownByPeriod.set(period, bp);
     }
-    bp.bandwidthUsd += cost.bandwidthUsd;
-    bp.functionsPlusEdgeUsd += cost.functionUsd + cost.edgeFunctionUsd;
-    bp.buildUsd += cost.buildUsd;
-    bp.otherUsd += cost.imageOptUsd + cost.otherUsd;
+    switch (row.serviceCategory) {
+      case 'bandwidth':
+        bp.bandwidthUsd += usd;
+        break;
+      case 'function':
+        bp.functionsPlusEdgeUsd += usd;
+        break;
+      case 'build':
+        bp.buildUsd += usd;
+        break;
+      default:
+        bp.otherUsd += usd;
+    }
   }
 
-  const sortedPeriods = [...costByPeriod.keys()].sort();
+  const sortedPeriods = [...new Set([...costByPeriod.keys(), ...breakdownByPeriod.keys()])].sort();
 
   const costByProject = sortedPeriods.map((period) => ({
     period,
     byProject: costByPeriod.get(period) ?? {},
   }));
 
-  const breakdown = sortedPeriods.map((period) => breakdownByPeriod.get(period)!);
+  const breakdown: VercelBreakdownPoint[] = sortedPeriods.map(
+    (period) =>
+      breakdownByPeriod.get(period) ?? {
+        period,
+        bandwidthUsd: 0,
+        functionsPlusEdgeUsd: 0,
+        buildUsd: 0,
+        otherUsd: 0,
+      },
+  );
 
   const response: VercelSeriesResponse = { costByProject, breakdown, projectNames };
   return NextResponse.json(response);

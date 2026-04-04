@@ -1,54 +1,32 @@
 import { logger } from '@/lib/logger';
 import { vercelFocusChargeSchema } from '@/lib/vercel/schemas';
-import type { VercelCharge } from '@/lib/vercel/schemas';
+import type { VercelFocusCharge } from '@/lib/vercel/schemas';
 
 const VERCEL_API_BASE = 'https://api.vercel.com';
 
 type FetchChargesParams = {
   token: string;
   teamId: string;
-  /** Billing period as "YYYY-MM". */
-  period: string;
+  /** ISO 8601 UTC datetime string — inclusive start (e.g. "2026-04-03T07:00:00Z"). */
+  from: string;
+  /** ISO 8601 UTC datetime string — exclusive end (e.g. "2026-04-04T07:00:00Z"). */
+  to: string;
 };
 
-/** Returns ISO date strings for the first and last day of the billing period month. */
-function periodToDateRange(period: string): { from: string; to: string } {
-  const from = `${period}-01`;
-  const firstDay = new Date(`${from}T00:00:00.000Z`);
-  const lastDay = new Date(firstDay);
-  lastDay.setUTCMonth(lastDay.getUTCMonth() + 1);
-  lastDay.setUTCDate(lastDay.getUTCDate() - 1);
-  return { from, to: lastDay.toISOString().slice(0, 10) };
-}
-
-/** Returns "YYYY-MM" for the billing month of the given UTC date. */
-export function billingPeriodForDate(date: Date): string {
-  const y = date.getUTCFullYear();
-  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-  return `${y}-${m}`;
-}
-
-/** Returns the first day of the billing period month as a Date (UTC midnight). */
-export function periodStartDate(period: string): Date {
-  return new Date(`${period}-01T00:00:00.000Z`);
-}
-
 /**
- * Fetches per-project billing charges for a given month from Vercel.
+ * Fetches FOCUS v1.3 billing charges for the given UTC datetime range.
  *
- * Uses the FOCUS-format endpoint:
- *   GET /v1/billing/charges?teamId=...&from=YYYY-MM-DD&to=YYYY-MM-DD
+ * Returns the full parsed records. The caller is responsible for grouping
+ * by day/project/service.
  *
- * The response is NDJSON — one JSON object per line.
- * Each record is mapped to the internal `VercelCharge` type.
+ * Vercel API: GET /v1/billing/charges?teamId=...&from=ISO&to=ISO
+ * Response: NDJSON — one JSON object per line.
  */
-export async function fetchVercelCharges(params: FetchChargesParams): Promise<VercelCharge[]> {
-  const { from, to } = periodToDateRange(params.period);
-
+export async function fetchVercelCharges(params: FetchChargesParams): Promise<VercelFocusCharge[]> {
   const url = new URL(`${VERCEL_API_BASE}/v1/billing/charges`);
   url.searchParams.set('teamId', params.teamId);
-  url.searchParams.set('from', from);
-  url.searchParams.set('to', to);
+  url.searchParams.set('from', params.from);
+  url.searchParams.set('to', params.to);
 
   const res = await fetch(url.toString(), {
     method: 'GET',
@@ -61,6 +39,18 @@ export async function fetchVercelCharges(params: FetchChargesParams): Promise<Ve
 
   if (!res.ok) {
     const body = await res.text();
+    // 404 with "costs_not_found" means no billing data for this period — treat as empty
+    if (res.status === 404) {
+      try {
+        const err = JSON.parse(body) as { error?: { code?: string } };
+        if (err.error?.code === 'costs_not_found') {
+          logger.debug({ from: params.from, to: params.to }, 'Vercel billing: no costs for period');
+          return [];
+        }
+      } catch {
+        // fall through to throw
+      }
+    }
     logger.error(
       { status: res.status, bodyPreview: body.slice(0, 500) },
       'Vercel billing API error',
@@ -69,7 +59,7 @@ export async function fetchVercelCharges(params: FetchChargesParams): Promise<Ve
   }
 
   const text = await res.text();
-  const charges: VercelCharge[] = [];
+  const charges: VercelFocusCharge[] = [];
 
   for (const line of text.split('\n')) {
     const trimmed = line.trim();
@@ -94,15 +84,41 @@ export async function fetchVercelCharges(params: FetchChargesParams): Promise<Ve
       continue;
     }
 
-    const { ServiceName, ConsumedQuantity, BilledCost, Tags } = parsed.data;
-    charges.push({
-      resource: ServiceName,
-      quantity: ConsumedQuantity,
-      price: BilledCost,
-      projectId: Tags.ProjectId ?? null,
-      projectName: Tags.ProjectName ?? null,
-    });
+    charges.push(parsed.data);
   }
 
+  logger.debug(
+    { from: params.from, to: params.to, count: charges.length },
+    'Fetched FOCUS charges',
+  );
   return charges;
+}
+
+/**
+ * Returns the UTC date string (YYYY-MM-DD) for a FOCUS ChargePeriodStart.
+ * Vercel periods start at 07:00Z, so we use the date portion directly —
+ * the calendar date of ChargePeriodStart represents the charge day.
+ */
+export function chargePeriodToDate(chargePeriodStart: string): string {
+  return chargePeriodStart.slice(0, 10);
+}
+
+/**
+ * Returns the ISO datetime strings for the daily window of a given UTC date.
+ * Vercel daily periods run 07:00Z → next day 07:00Z.
+ */
+export function dayToFocusRange(date: Date): { from: string; to: string } {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
+  const from = `${y}-${m}-${d}T07:00:00Z`;
+
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + 1);
+  const yn = next.getUTCFullYear();
+  const mn = String(next.getUTCMonth() + 1).padStart(2, '0');
+  const dn = String(next.getUTCDate()).padStart(2, '0');
+  const to = `${yn}-${mn}-${dn}T07:00:00Z`;
+
+  return { from, to };
 }

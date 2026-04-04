@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
-import { syncVercelForMonth } from '@/lib/sync-vercel/sync-vercel-month';
+import { syncVercelForDay } from '@/lib/sync-vercel/sync-vercel-day';
 
 type RunVercelSyncParams = {
   token: string;
@@ -24,7 +24,7 @@ export async function runVercelSync(params: RunVercelSyncParams): Promise<RunVer
   });
 
   try {
-    const { rows } = await syncVercelForMonth({
+    const { rows } = await syncVercelForDay({
       token: params.token,
       teamId: params.teamId,
       targetDay: params.targetDay,
