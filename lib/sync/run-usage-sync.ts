@@ -1,3 +1,4 @@
+import { evaluateSpendAlertsForSyncedDay } from "@/lib/alerts/evaluate-spend-alerts";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { syncUsageForUtcDay } from "@/lib/sync/sync-usage-day";
@@ -38,6 +39,12 @@ export async function runUsageSync(params: RunUsageSyncParams): Promise<RunUsage
         rowsUpserted: rows,
       },
     });
+
+    try {
+      await evaluateSpendAlertsForSyncedDay(params.targetDay);
+    } catch (e) {
+      logger.error({ err: e }, "Spend alert evaluation failed after sync");
+    }
 
     return {
       ok: true,
