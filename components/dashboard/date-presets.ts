@@ -28,6 +28,11 @@ export function utcToday(): string {
   return toIsoDate(n);
 }
 
+/** Single UTC calendar day (inclusive), e.g. latest day with synced usage. */
+export function rangeSingleDayUtc(dayIso: string): { from: string; to: string } {
+  return { from: dayIso, to: dayIso };
+}
+
 function addDays(iso: string, delta: number): string {
   const [y, m, d] = iso.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d));

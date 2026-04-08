@@ -9,14 +9,18 @@ import {
   rangeCurrentMonthUtc,
   rangeLastDays,
   rangePreviousMonthUtc,
+  rangeSingleDayUtc,
   utcToday,
 } from "@/components/dashboard/date-presets";
 import { isValidIsoDate, normalizeRange } from "@/components/dashboard/date-range-validate";
 import type { ProjectRow } from "@/components/dashboard/types";
 
-const PRESETS = [
+const PRESETS_MONTHS = [
   { label: "Current month", getRange: rangeCurrentMonthUtc },
   { label: "Previous month", getRange: rangePreviousMonthUtc },
+] as const;
+
+const PRESETS_ROLLING = [
   { label: "7 days", getRange: () => rangeLastDays(7) },
   { label: "30 days", getRange: () => rangeLastDays(30) },
   { label: "60 days", getRange: () => rangeLastDays(60) },
@@ -32,9 +36,35 @@ function presetActive(getRange: () => { from: string; to: string }, range: { fro
   return range.from === exp.from && range.to === exp.to;
 }
 
+const PRESET_BTN_BASE =
+  "rounded-lg px-3 py-2 text-left text-sm font-medium transition";
+
+function QuickPeriodPresetButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${PRESET_BTN_BASE} ${
+        active ? "bg-teal-600 text-white shadow-sm" : "bg-white text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
 export function DashboardFilterSidebar({
   range,
   onRangeChange,
+  latestSyncedDayIso,
   metric,
   setMetric,
   groupBy,
@@ -47,6 +77,8 @@ export function DashboardFilterSidebar({
 }: {
   range: { from: string; to: string };
   onRangeChange: (r: { from: string; to: string }) => void;
+  /** Most recent UTC day present in usage snapshots (any project), or null if none yet. */
+  latestSyncedDayIso: string | null;
   metric: NeonUsageMetricName;
   setMetric: (m: NeonUsageMetricName) => void;
   groupBy: "day" | "month";
@@ -72,6 +104,12 @@ export function DashboardFilterSidebar({
   };
 
   const todayUtc = utcToday();
+  const latestSyncedRange =
+    latestSyncedDayIso !== null ? rangeSingleDayUtc(latestSyncedDayIso) : null;
+  const latestSyncedActive =
+    latestSyncedRange !== null &&
+    range.from === latestSyncedRange.from &&
+    range.to === latestSyncedRange.to;
 
   return (
     <aside className="w-full shrink-0 border-b border-zinc-200 bg-zinc-50/80 lg:w-[17.5rem] lg:border-b-0 lg:border-r lg:bg-white">
@@ -83,23 +121,45 @@ export function DashboardFilterSidebar({
         <div>
           <p className={LABEL_CLASS}>Quick period</p>
           <div className="mt-2 flex flex-col gap-1.5">
-            {PRESETS.map((p) => {
-              const on = presetActive(p.getRange, range);
-              return (
-                <button
-                  key={p.label}
-                  type="button"
-                  onClick={() => onRangeChange(p.getRange())}
-                  className={`rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
-                    on
-                      ? "bg-teal-600 text-white shadow-sm"
-                      : "bg-white text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
+            {PRESETS_MONTHS.map((p) => (
+              <QuickPeriodPresetButton
+                key={p.label}
+                label={p.label}
+                active={presetActive(p.getRange, range)}
+                onClick={() => onRangeChange(p.getRange())}
+              />
+            ))}
+            <button
+              type="button"
+              disabled={latestSyncedRange === null}
+              title={
+                latestSyncedRange === null
+                  ? "No usage snapshots yet — run sync or pick another period"
+                  : `UTC ${latestSyncedDayIso} (latest day in synced data)`
+              }
+              onClick={() => {
+                if (latestSyncedRange !== null) {
+                  onRangeChange(latestSyncedRange);
+                }
+              }}
+              className={`${PRESET_BTN_BASE} ${
+                latestSyncedActive
+                  ? "bg-teal-600 text-white shadow-sm"
+                  : latestSyncedRange === null
+                    ? "cursor-not-allowed bg-zinc-100 text-zinc-400 ring-1 ring-zinc-200"
+                    : "bg-white text-zinc-700 shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50"
+              }`}
+            >
+              1 day
+            </button>
+            {PRESETS_ROLLING.map((p) => (
+              <QuickPeriodPresetButton
+                key={p.label}
+                label={p.label}
+                active={presetActive(p.getRange, range)}
+                onClick={() => onRangeChange(p.getRange())}
+              />
+            ))}
           </div>
         </div>
 

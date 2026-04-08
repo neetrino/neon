@@ -5,7 +5,7 @@ import { NEON_USAGE_METRIC_LABELS } from "@/lib/constants/neon-metrics";
 import type { NeonUsageMetricName } from "@/lib/constants/neon-metrics";
 import { buildRechartsRows } from "@/components/dashboard/chart-data";
 import { DashboardFilterSidebar } from "@/components/dashboard/DashboardFilterSidebar";
-import { rangeLastDays } from "@/components/dashboard/date-presets";
+import { usePersistedDashboardFilterPrefs } from "@/components/dashboard/use-persisted-dashboard-filter-prefs";
 import { SyncPanel } from "@/components/dashboard/DashboardWidgets";
 import { UsageKpiStrip } from "@/components/dashboard/UsageKpiStrip";
 import { sumDashboardKpis } from "@/components/dashboard/usage-kpi-summary";
@@ -37,7 +37,7 @@ async function readJson<T>(res: Response): Promise<T> {
 }
 
 export function UsageDashboard() {
-  const [range, setRange] = useState(() => rangeLastDays(30));
+  const { range, setRange, compareMode, setCompareMode } = usePersistedDashboardFilterPrefs();
   const [metric, setMetric] = useState<NeonUsageMetricName>("compute_unit_seconds");
   const [groupBy, setGroupBy] = useState<"day" | "month">("day");
   const [projectId, setProjectId] = useState<string>("");
@@ -47,7 +47,6 @@ export function UsageDashboard() {
   const [seriesDisplayUnit, setSeriesDisplayUnit] = useState<UsageSeriesResponse["displayUnit"]>("cu_hours");
   const [totalsPayload, setTotalsPayload] = useState<ProjectTotalsResponse | null>(null);
   const [runs, setRuns] = useState<SyncRunRow[]>([]);
-  const [compareMode, setCompareMode] = useState<"usage" | "cost">("usage");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncingNow, setSyncingNow] = useState(false);
@@ -58,6 +57,16 @@ export function UsageDashboard() {
       m[p.neonProjectId] = p.name;
     }
     return m;
+  }, [projects]);
+
+  const latestSyncedDayIso = useMemo(() => {
+    let max: string | null = null;
+    for (const p of projects) {
+      if (p.lastSnapshotDate && (!max || p.lastSnapshotDate > max)) {
+        max = p.lastSnapshotDate;
+      }
+    }
+    return max;
   }, [projects]);
 
   const normalizedSearch = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
@@ -231,6 +240,7 @@ export function UsageDashboard() {
       <DashboardFilterSidebar
         range={range}
         onRangeChange={setRange}
+        latestSyncedDayIso={latestSyncedDayIso}
         metric={metric}
         setMetric={setMetric}
         groupBy={groupBy}
