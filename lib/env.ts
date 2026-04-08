@@ -1,4 +1,10 @@
 import { z } from "zod";
+import { DEFAULT_TELEGRAM_SPEND_ALERT_USD } from "@/lib/constants/spend-alert-default";
+
+const optionalNonEmptyString = z.preprocess(
+  (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+  z.string().min(1).optional(),
+);
 
 const envSchema = z
   .object({
@@ -12,6 +18,17 @@ const envSchema = z
     JWT_SECRET: z.string().min(32).optional(),
     APP_URL: z.string().url().optional(),
     NEON_PRICING_PLAN: z.enum(["launch", "scale"]).default("launch"),
+    /** Telegram Bot API token; optional — spend alerts disabled if unset. */
+    TELEGRAM_BOT_TOKEN: optionalNonEmptyString,
+    /** Chat ID (user, group, or channel) to receive spend alerts. */
+    TELEGRAM_CHAT_ID: optionalNonEmptyString,
+    /** Default USD threshold when a project has no per-project override. */
+    TELEGRAM_SPEND_ALERT_DEFAULT_USD: z.preprocess((v) => {
+      if (v === undefined || v === null || v === "") {
+        return DEFAULT_TELEGRAM_SPEND_ALERT_USD;
+      }
+      return v;
+    }, z.coerce.number().positive()),
   })
   .superRefine((val, ctx) => {
     if (val.DASHBOARD_PASSWORD && !val.JWT_SECRET) {

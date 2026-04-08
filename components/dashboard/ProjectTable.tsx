@@ -50,10 +50,14 @@ export function ProjectTable({
   projects,
   usageByProjectId,
   calendarDays,
+  defaultSpendAlertUsd,
+  onSpendAlertSaved,
 }: {
   projects: ProjectRow[];
   usageByProjectId: Map<string, ProjectUsageAggregate> | null;
   calendarDays: number | null;
+  defaultSpendAlertUsd: number;
+  onSpendAlertSaved: () => void;
 }) {
   const [view, setView] = useState<ViewMode>("cards");
   const [hydrated, setHydrated] = useState(false);
@@ -90,9 +94,19 @@ export function ProjectTable({
         {sortedProjects.length === 0 ? (
           <p className="text-sm text-zinc-500">No projects yet.</p>
         ) : view === "cards" ? (
-          <ProjectTableCards projects={sortedProjects} usageByProjectId={usageByProjectId} />
+          <ProjectTableCards
+            projects={sortedProjects}
+            usageByProjectId={usageByProjectId}
+            defaultSpendAlertUsd={defaultSpendAlertUsd}
+            onSpendAlertSaved={onSpendAlertSaved}
+          />
         ) : (
-          <ProjectTableList projects={sortedProjects} usageByProjectId={usageByProjectId} />
+          <ProjectTableList
+            projects={sortedProjects}
+            usageByProjectId={usageByProjectId}
+            defaultSpendAlertUsd={defaultSpendAlertUsd}
+            onSpendAlertSaved={onSpendAlertSaved}
+          />
         )}
       </div>
 

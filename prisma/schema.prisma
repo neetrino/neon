@@ -11,8 +11,11 @@ model NeonProject {
   neonProjectId String          @id @map("neon_project_id")
   name          String
   regionId      String?         @map("region_id")
+  /** Per-project USD threshold for Telegram spend alerts; null uses env default. */
+  spendAlertThresholdUsd Decimal? @map("spend_alert_threshold_usd") @db.Decimal(12, 4)
   updatedAt     DateTime        @updatedAt @map("updated_at")
   snapshots     UsageSnapshot[]
+  spendAlerts   SpendAlertSent[]
 
   @@map("neon_projects")
 }
@@ -47,4 +50,20 @@ model SyncRun {
 
   @@index([startedAt])
   @@map("sync_runs")
+}
+
+/** One row per project per UTC day when a Telegram spend alert was sent (dedupe). */
+model SpendAlertSent {
+  id             String   @id @default(cuid())
+  neonProjectId  String   @map("neon_project_id")
+  snapshotDate   DateTime @db.Date @map("snapshot_date")
+  sentAt         DateTime @default(now()) @map("sent_at")
+  spendUsd       Decimal  @map("spend_usd") @db.Decimal(12, 4)
+  thresholdUsd   Decimal  @map("threshold_usd") @db.Decimal(12, 4)
+
+  project NeonProject @relation(fields: [neonProjectId], references: [neonProjectId], onDelete: Cascade)
+
+  @@unique([neonProjectId, snapshotDate])
+  @@index([snapshotDate])
+  @@map("spend_alert_sent")
 }

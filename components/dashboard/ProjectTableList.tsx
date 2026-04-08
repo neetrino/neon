@@ -8,6 +8,7 @@ import {
 import {
   formatTotalsIntegerString,
 } from "@/components/dashboard/usage-display-format";
+import { ProjectSpendAlertField } from "@/components/dashboard/ProjectSpendAlertField";
 
 function formatUsd(value: number): string {
   return `$${value.toFixed(2)}`;
@@ -16,13 +17,17 @@ function formatUsd(value: number): string {
 export function ProjectTableList({
   projects,
   usageByProjectId,
+  defaultSpendAlertUsd,
+  onSpendAlertSaved,
 }: {
   projects: ProjectRow[];
   usageByProjectId: Map<string, ProjectUsageAggregate> | null;
+  defaultSpendAlertUsd: number;
+  onSpendAlertSaved: () => void;
 }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-zinc-200 shadow-sm [-ms-overflow-style:auto] [scrollbar-gutter:stable]">
-      <table className="w-full min-w-[960px] border-collapse text-left text-sm">
+      <table className="w-full min-w-[1080px] border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-zinc-200 bg-zinc-100">
             <th className="sticky left-0 z-[1] bg-zinc-100 px-3 py-3 text-xs font-bold uppercase tracking-wide text-zinc-600 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.15)]">
@@ -49,6 +54,9 @@ export function ProjectTableList({
             </th>
             <th className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wide text-zinc-600">
               Compute $
+            </th>
+            <th className="px-3 py-3 text-right text-xs font-bold uppercase tracking-wide text-zinc-600">
+              TG alert ≥
             </th>
             {PROJECT_TABLE_METRICS.map((m) => (
               <th
@@ -107,6 +115,15 @@ export function ProjectTableList({
                 <td className="px-3 py-3 text-right font-mono text-xs text-zinc-800">{storageAvgGb}</td>
                 <td className="px-3 py-3 text-right font-mono text-xs text-zinc-800">{estTotal}</td>
                 <td className="px-3 py-3 text-right font-mono text-xs text-zinc-800">{estCompute}</td>
+                <td className="px-2 py-2 align-top">
+                  <ProjectSpendAlertField
+                    key={`${p.neonProjectId}-${p.spendAlertThresholdUsd ?? "def"}`}
+                    neonProjectId={p.neonProjectId}
+                    spendAlertThresholdUsd={p.spendAlertThresholdUsd}
+                    defaultSpendAlertUsd={defaultSpendAlertUsd}
+                    onSaved={onSpendAlertSaved}
+                  />
+                </td>
                 {PROJECT_TABLE_METRICS.map((m) => (
                   <td
                     key={m}

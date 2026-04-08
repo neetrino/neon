@@ -23,6 +23,7 @@ import type {
   SyncRunRow,
   UsageSeriesResponse,
 } from "@/components/dashboard/types";
+import { DEFAULT_TELEGRAM_SPEND_ALERT_USD } from "@/lib/constants/spend-alert-default";
 
 async function readJson<T>(res: Response): Promise<T> {
   if (res.status === 401) {
@@ -43,6 +44,9 @@ export function UsageDashboard() {
   const [projectId, setProjectId] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [projects, setProjects] = useState<ProjectRow[]>([]);
+  const [defaultSpendAlertUsd, setDefaultSpendAlertUsd] = useState(
+    DEFAULT_TELEGRAM_SPEND_ALERT_USD,
+  );
   const [points, setPoints] = useState<SeriesPoint[]>([]);
   const [seriesDisplayUnit, setSeriesDisplayUnit] = useState<UsageSeriesResponse["displayUnit"]>("cu_hours");
   const [totalsPayload, setTotalsPayload] = useState<ProjectTotalsResponse | null>(null);
@@ -162,13 +166,16 @@ export function UsageDashboard() {
       const seriesUrl = `/api/usage/series?${qs.toString()}`;
 
       const [pr, st, pt, se] = await Promise.all([
-        readJson<{ projects: ProjectRow[] }>(await fetch("/api/usage/projects")),
+        readJson<{ projects: ProjectRow[]; defaultSpendAlertUsd: number }>(
+          await fetch("/api/usage/projects"),
+        ),
         readJson<{ runs: SyncRunRow[] }>(await fetch("/api/usage/sync-status")),
         readJson<ProjectTotalsResponse>(await fetch(totalsUrl)),
         readJson<UsageSeriesResponse>(await fetch(seriesUrl)),
       ]);
 
       setProjects(pr.projects);
+      setDefaultSpendAlertUsd(pr.defaultSpendAlertUsd);
       setRuns(st.runs);
       setTotalsPayload(pt);
       setPoints(se.points);
@@ -345,6 +352,8 @@ export function UsageDashboard() {
           projects={filteredProjects}
           usageByProjectId={usageByProjectId}
           calendarDays={filteredTotalsPayload?.calendarDays ?? null}
+          defaultSpendAlertUsd={defaultSpendAlertUsd}
+          onSpendAlertSaved={load}
         />
       </div>
     </div>

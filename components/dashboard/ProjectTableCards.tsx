@@ -8,6 +8,7 @@ import {
 import {
   formatTotalsIntegerString,
 } from "@/components/dashboard/usage-display-format";
+import { ProjectSpendAlertField } from "@/components/dashboard/ProjectSpendAlertField";
 
 function formatUsd(value: number): string {
   return `$${value.toFixed(2)}`;
@@ -43,9 +44,13 @@ function Stat({
 export function ProjectTableCards({
   projects,
   usageByProjectId,
+  defaultSpendAlertUsd,
+  onSpendAlertSaved,
 }: {
   projects: ProjectRow[];
   usageByProjectId: Map<string, ProjectUsageAggregate> | null;
+  defaultSpendAlertUsd: number;
+  onSpendAlertSaved: () => void;
 }) {
   return (
     <ul className="grid list-none gap-5 sm:grid-cols-2 2xl:grid-cols-3">
@@ -106,6 +111,17 @@ export function ProjectTableCards({
                 />
                 <Stat label="Storage avg (GB)" value={storageAvg} />
                 <Stat label="Estimated total $" value={estCost} />
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-zinc-50/90 px-3 py-2">
+                <span className="text-xs font-semibold text-zinc-600">Telegram alert ≥ (USD / day)</span>
+                <ProjectSpendAlertField
+                  key={`${p.neonProjectId}-${p.spendAlertThresholdUsd ?? "def"}`}
+                  neonProjectId={p.neonProjectId}
+                  spendAlertThresholdUsd={p.spendAlertThresholdUsd}
+                  defaultSpendAlertUsd={defaultSpendAlertUsd}
+                  onSaved={onSpendAlertSaved}
+                />
               </div>
 
               <details className="group rounded-lg border border-zinc-200 bg-zinc-50/80">
