@@ -59,6 +59,16 @@ export function UsageDashboard() {
     return m;
   }, [projects]);
 
+  const latestSyncedDayIso = useMemo(() => {
+    let max: string | null = null;
+    for (const p of projects) {
+      if (p.lastSnapshotDate && (!max || p.lastSnapshotDate > max)) {
+        max = p.lastSnapshotDate;
+      }
+    }
+    return max;
+  }, [projects]);
+
   const normalizedSearch = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
   const filteredProjects = useMemo(() => {
@@ -230,6 +240,7 @@ export function UsageDashboard() {
       <DashboardFilterSidebar
         range={range}
         onRangeChange={setRange}
+        latestSyncedDayIso={latestSyncedDayIso}
         metric={metric}
         setMetric={setMetric}
         groupBy={groupBy}
