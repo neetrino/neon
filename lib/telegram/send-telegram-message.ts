@@ -4,21 +4,27 @@ type SendParams = {
   botToken: string;
   chatId: string;
   text: string;
+  /** When set, `text` must follow Telegram HTML rules (entities escaped where needed). */
+  parseMode?: "HTML";
 };
 
 /**
- * Sends a plain-text Telegram message via Bot API.
+ * Sends a Telegram message via Bot API (plain text or HTML).
  */
 export async function sendTelegramMessage(params: SendParams): Promise<void> {
   const url = `https://api.telegram.org/bot${params.botToken}/sendMessage`;
+  const body: Record<string, unknown> = {
+    chat_id: params.chatId,
+    text: params.text,
+    disable_web_page_preview: true,
+  };
+  if (params.parseMode) {
+    body.parse_mode = params.parseMode;
+  }
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: params.chatId,
-      text: params.text,
-      disable_web_page_preview: true,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {

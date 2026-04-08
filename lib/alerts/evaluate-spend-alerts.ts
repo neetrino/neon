@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { formatSpendAlertTelegramHtml } from "@/lib/alerts/format-spend-alert-message";
 import { isIgnoredProjectId } from "@/lib/constants/ignored-projects";
 import { logger } from "@/lib/logger";
 import { getEnv } from "@/lib/env";
@@ -20,10 +21,6 @@ function decimalToNumber(d: Prisma.Decimal | null | undefined): number | null {
     return null;
   }
   return d.toNumber();
-}
-
-function formatUsd(n: number): string {
-  return n.toFixed(2);
 }
 
 function utcDateOnlyIso(d: Date): string {
@@ -86,16 +83,24 @@ export async function evaluateSpendAlertsForSyncedDay(targetDay: Date): Promise<
       continue;
     }
 
-    const text =
-      `Neon spend alert\n` +
-      `Project: ${p.name}\n` +
-      `UTC day: ${utcDateOnlyIso(targetDay)}\n` +
-      `Estimated spend: $${formatUsd(spendUsd)} USD\n` +
-      `Threshold: $${formatUsd(thresholdUsd)} USD\n` +
-      `(org pricing plan: ${pricingPlan})`;
+    const text = formatSpendAlertTelegramHtml({
+      projectName: p.name,
+      neonProjectId: p.neonProjectId,
+      utcDateIso: utcDateOnlyIso(targetDay),
+      spendUsd,
+      thresholdUsd,
+      pricingPlan,
+      thresholdSource: override !== null && override !== undefined ? "project" : "default",
+      dashboardUrl: env.APP_URL ?? null,
+    });
 
     try {
-      await sendTelegramMessage({ botToken: token, chatId, text });
+      await sendTelegramMessage({
+        botToken: token,
+        chatId,
+        text,
+        parseMode: "HTML",
+      });
     } catch (e) {
       logger.error({ err: e, neonProjectId: p.neonProjectId }, "Telegram spend alert send failed");
       continue;
