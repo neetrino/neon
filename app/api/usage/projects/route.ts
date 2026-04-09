@@ -22,6 +22,8 @@ export async function GET() {
     regionId: p.regionId,
     lastSnapshotDate: p.snapshots[0]?.snapshotDate.toISOString().slice(0, 10) ?? null,
     spendAlertThresholdUsd: p.spendAlertThresholdUsd?.toNumber() ?? null,
+    spendAlertEscalationPercentOfThreshold:
+      p.spendAlertEscalationPercentOfThreshold?.toNumber() ?? null,
   }));
 
   return NextResponse.json({

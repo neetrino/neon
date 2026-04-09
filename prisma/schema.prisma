@@ -13,6 +13,11 @@ model NeonProject {
   regionId      String?         @map("region_id")
   /** Per-project USD threshold for Telegram spend alerts; null uses env default. */
   spendAlertThresholdUsd Decimal? @map("spend_alert_threshold_usd") @db.Decimal(12, 4)
+  /**
+   * Min further-spend step as % of this row’s limit for same-day Telegram escalations; null uses
+   * org default from `SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD`.
+   */
+  spendAlertEscalationPercentOfThreshold Decimal? @map("spend_alert_escalation_percent_of_threshold") @db.Decimal(5, 2)
   updatedAt     DateTime        @updatedAt @map("updated_at")
   snapshots     UsageSnapshot[]
   spendAlerts   SpendAlertSent[]

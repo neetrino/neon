@@ -19,6 +19,8 @@ export type ProjectRow = {
   lastSnapshotDate: string | null;
   /** Null = use `defaultSpendAlertUsd` from env for Telegram spend alerts. */
   spendAlertThresholdUsd: number | null;
+  /** Null = use org `spendAlertEscalationPercentOfThreshold` from env for escalation step %. */
+  spendAlertEscalationPercentOfThreshold: number | null;
 };
 
 export type SyncRunRow = {

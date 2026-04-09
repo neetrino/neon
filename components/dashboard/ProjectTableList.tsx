@@ -119,11 +119,12 @@ export function ProjectTableList({
                 <td className="px-3 py-3 text-right font-mono text-xs text-zinc-800">{estCompute}</td>
                 <td className="px-2 py-2 align-top">
                   <ProjectSpendAlertField
-                    key={`${p.neonProjectId}-${p.spendAlertThresholdUsd ?? "def"}`}
+                    key={`${p.neonProjectId}-${p.spendAlertThresholdUsd ?? "d"}-${p.spendAlertEscalationPercentOfThreshold ?? "e"}`}
                     neonProjectId={p.neonProjectId}
                     spendAlertThresholdUsd={p.spendAlertThresholdUsd}
-                    defaultSpendAlertUsd={defaultSpendAlertUsd}
-                    spendAlertEscalationPercentOfThreshold={spendAlertEscalationPercentOfThreshold}
+                    spendAlertEscalationPercentOfThreshold={p.spendAlertEscalationPercentOfThreshold}
+                    orgDefaultSpendAlertUsd={defaultSpendAlertUsd}
+                    orgDefaultEscalationPercent={spendAlertEscalationPercentOfThreshold}
                     onSaved={onSpendAlertSaved}
                   />
                 </td>

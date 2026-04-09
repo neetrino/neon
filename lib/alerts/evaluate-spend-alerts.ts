@@ -38,8 +38,9 @@ function lastNotifiedAnchorUsd(row: {
 
 type ThresholdContext = {
   defaultThreshold: number;
-  escalationPercentOfThreshold: number;
+  defaultEscalationPercent: number;
   thresholdById: Map<string, number | null>;
+  escalationPercentById: Map<string, number | null>;
   token: string;
   chatId: string;
 };
@@ -170,7 +171,9 @@ async function iterateSpendAlerts(
     }
 
     const anchor = lastNotifiedAnchorUsd(existing);
-    const escalationDelta = escalationStepUsd(thresholdUsd, ctx.escalationPercentOfThreshold);
+    const escalationPct =
+      ctx.escalationPercentById.get(p.neonProjectId) ?? ctx.defaultEscalationPercent;
+    const escalationDelta = escalationStepUsd(thresholdUsd, escalationPct);
     if (spendUsd <= anchor + escalationDelta) {
       continue;
     }
@@ -190,7 +193,7 @@ async function iterateSpendAlerts(
 /**
  * After a usage sync for `targetDay` (UTC), notifies Telegram when estimated spend exceeds the
  * per-project or default threshold: first breach, then escalations when spend grows by at least
- * `SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD` of that limit since the last notification.
+ * that limit since the last notification (per-project override or env default).
  */
 export async function evaluateSpendAlertsForSyncedDay(targetDay: Date): Promise<void> {
   const env = getEnv();
@@ -203,8 +206,9 @@ export async function evaluateSpendAlertsForSyncedDay(targetDay: Date): Promise<
 
   const ctx: ThresholdContext = {
     defaultThreshold: env.TELEGRAM_SPEND_ALERT_DEFAULT_USD,
-    escalationPercentOfThreshold: env.SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD,
+    defaultEscalationPercent: env.SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD,
     thresholdById: new Map(),
+    escalationPercentById: new Map(),
     token,
     chatId,
   };
@@ -222,10 +226,18 @@ export async function evaluateSpendAlertsForSyncedDay(targetDay: Date): Promise<
   );
 
   const projectMeta = await prisma.neonProject.findMany({
-    select: { neonProjectId: true, spendAlertThresholdUsd: true },
+    select: {
+      neonProjectId: true,
+      spendAlertThresholdUsd: true,
+      spendAlertEscalationPercentOfThreshold: true,
+    },
   });
   for (const p of projectMeta) {
     ctx.thresholdById.set(p.neonProjectId, decimalToNumber(p.spendAlertThresholdUsd));
+    ctx.escalationPercentById.set(
+      p.neonProjectId,
+      decimalToNumber(p.spendAlertEscalationPercentOfThreshold),
+    );
   }
 
   await iterateSpendAlerts(projectsUsage, targetDay, ctx);
