@@ -13,6 +13,11 @@ model NeonProject {
   regionId      String?         @map("region_id")
   /** Per-project USD threshold for Telegram spend alerts; null uses env default. */
   spendAlertThresholdUsd Decimal? @map("spend_alert_threshold_usd") @db.Decimal(12, 4)
+  /**
+   * Min further-spend step as % of this row’s limit for same-day Telegram escalations; null uses
+   * org default from `SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD`.
+   */
+  spendAlertEscalationPercentOfThreshold Decimal? @map("spend_alert_escalation_percent_of_threshold") @db.Decimal(5, 2)
   updatedAt     DateTime        @updatedAt @map("updated_at")
   snapshots     UsageSnapshot[]
   spendAlerts   SpendAlertSent[]
@@ -52,14 +57,19 @@ model SyncRun {
   @@map("sync_runs")
 }
 
-/** One row per project per UTC day when a Telegram spend alert was sent (dedupe). */
+/**
+ * One row per project per UTC day: first threshold breach + anchor for escalation dedupe.
+ * `spendUsd` / `thresholdUsd` reflect the first alert; `lastNotifiedSpendUsd` updates on each sent message.
+ */
 model SpendAlertSent {
-  id             String   @id @default(cuid())
-  neonProjectId  String   @map("neon_project_id")
-  snapshotDate   DateTime @db.Date @map("snapshot_date")
-  sentAt         DateTime @default(now()) @map("sent_at")
-  spendUsd       Decimal  @map("spend_usd") @db.Decimal(12, 4)
-  thresholdUsd   Decimal  @map("threshold_usd") @db.Decimal(12, 4)
+  id                   String    @id @default(cuid())
+  neonProjectId        String    @map("neon_project_id")
+  snapshotDate         DateTime  @db.Date @map("snapshot_date")
+  sentAt               DateTime  @default(now()) @map("sent_at")
+  spendUsd             Decimal   @map("spend_usd") @db.Decimal(12, 4)
+  thresholdUsd         Decimal   @map("threshold_usd") @db.Decimal(12, 4)
+  /** Spend at last Telegram notification (first or latest escalation); null on legacy rows. */
+  lastNotifiedSpendUsd Decimal?  @map("last_notified_spend_usd") @db.Decimal(12, 4)
 
   project NeonProject @relation(fields: [neonProjectId], references: [neonProjectId], onDelete: Cascade)
 

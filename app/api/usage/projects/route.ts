@@ -22,10 +22,13 @@ export async function GET() {
     regionId: p.regionId,
     lastSnapshotDate: p.snapshots[0]?.snapshotDate.toISOString().slice(0, 10) ?? null,
     spendAlertThresholdUsd: p.spendAlertThresholdUsd?.toNumber() ?? null,
+    spendAlertEscalationPercentOfThreshold:
+      p.spendAlertEscalationPercentOfThreshold?.toNumber() ?? null,
   }));
 
   return NextResponse.json({
     projects: filterIgnoredProjectIds(payload),
     defaultSpendAlertUsd: env.TELEGRAM_SPEND_ALERT_DEFAULT_USD,
+    spendAlertEscalationPercentOfThreshold: env.SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD,
   });
 }

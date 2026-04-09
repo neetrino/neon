@@ -45,11 +45,13 @@ export function ProjectTableCards({
   projects,
   usageByProjectId,
   defaultSpendAlertUsd,
+  spendAlertEscalationPercentOfThreshold,
   onSpendAlertSaved,
 }: {
   projects: ProjectRow[];
   usageByProjectId: Map<string, ProjectUsageAggregate> | null;
   defaultSpendAlertUsd: number;
+  spendAlertEscalationPercentOfThreshold: number;
   onSpendAlertSaved: () => void;
 }) {
   return (
@@ -116,10 +118,12 @@ export function ProjectTableCards({
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-zinc-50/90 px-3 py-2">
                 <span className="text-xs font-semibold text-zinc-600">Telegram alert ≥ (USD / day)</span>
                 <ProjectSpendAlertField
-                  key={`${p.neonProjectId}-${p.spendAlertThresholdUsd ?? "def"}`}
+                  key={`${p.neonProjectId}-${p.spendAlertThresholdUsd ?? "d"}-${p.spendAlertEscalationPercentOfThreshold ?? "e"}`}
                   neonProjectId={p.neonProjectId}
                   spendAlertThresholdUsd={p.spendAlertThresholdUsd}
-                  defaultSpendAlertUsd={defaultSpendAlertUsd}
+                  spendAlertEscalationPercentOfThreshold={p.spendAlertEscalationPercentOfThreshold}
+                  orgDefaultSpendAlertUsd={defaultSpendAlertUsd}
+                  orgDefaultEscalationPercent={spendAlertEscalationPercentOfThreshold}
                   onSaved={onSpendAlertSaved}
                 />
               </div>

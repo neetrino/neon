@@ -51,12 +51,14 @@ export function ProjectTable({
   usageByProjectId,
   calendarDays,
   defaultSpendAlertUsd,
+  spendAlertEscalationPercentOfThreshold,
   onSpendAlertSaved,
 }: {
   projects: ProjectRow[];
   usageByProjectId: Map<string, ProjectUsageAggregate> | null;
   calendarDays: number | null;
   defaultSpendAlertUsd: number;
+  spendAlertEscalationPercentOfThreshold: number;
   onSpendAlertSaved: () => void;
 }) {
   const [view, setView] = useState<ViewMode>("cards");
@@ -98,6 +100,7 @@ export function ProjectTable({
             projects={sortedProjects}
             usageByProjectId={usageByProjectId}
             defaultSpendAlertUsd={defaultSpendAlertUsd}
+            spendAlertEscalationPercentOfThreshold={spendAlertEscalationPercentOfThreshold}
             onSpendAlertSaved={onSpendAlertSaved}
           />
         ) : (
@@ -105,6 +108,7 @@ export function ProjectTable({
             projects={sortedProjects}
             usageByProjectId={usageByProjectId}
             defaultSpendAlertUsd={defaultSpendAlertUsd}
+            spendAlertEscalationPercentOfThreshold={spendAlertEscalationPercentOfThreshold}
             onSpendAlertSaved={onSpendAlertSaved}
           />
         )}
