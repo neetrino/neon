@@ -12,6 +12,11 @@ export function getYesterdayUtc(now: Date = new Date()): Date {
   return toUtcDateOnly(d);
 }
 
+/** Start of the current UTC calendar day (00:00:00.000Z). */
+export function getStartOfTodayUtc(now: Date = new Date()): Date {
+  return toUtcDateOnly(now);
+}
+
 export function addUtcDays(date: Date, days: number): Date {
   const d = new Date(date);
   d.setUTCDate(d.getUTCDate() + days);

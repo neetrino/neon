@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/sync-neon-usage",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-neon-usage-today",
+      "schedule": "0 * * * *"
     }
   ]
 }

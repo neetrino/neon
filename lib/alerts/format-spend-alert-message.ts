@@ -6,15 +6,17 @@ export function escapeTelegramHtml(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
+export type SpendAlertMessageKind = "first" | "escalation";
+
 type FormatSpendAlertParams = {
   projectName: string;
-  neonProjectId: string;
-  utcDateIso: string;
+  /** UTC calendar day the estimate applies to. */
+  targetDayUtc: Date;
   spendUsd: number;
   thresholdUsd: number;
-  pricingPlan: string;
-  thresholdSource: "project" | "default";
-  dashboardUrl: string | null;
+  kind: SpendAlertMessageKind;
+  /** Spend at last notification; required when `kind` is `escalation`. */
+  previousNotifiedSpendUsd?: number;
 };
 
 function formatMoney(n: number): string {
@@ -26,51 +28,31 @@ function formatMoney(n: number): string {
   });
 }
 
+function formatUtcDayLabel(d: Date): string {
+  return `Day ${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+
 /**
- * Rich HTML body for Telegram (parse_mode: HTML). Labels in English to match the dashboard.
+ * Compact HTML body for Telegram (`parse_mode: HTML`). Only the project name uses `<b>`.
  */
 export function formatSpendAlertTelegramHtml(p: FormatSpendAlertParams): string {
-  const name = escapeTelegramHtml(p.projectName);
-  const id = escapeTelegramHtml(p.neonProjectId);
-  const plan = escapeTelegramHtml(p.pricingPlan);
-  const date = escapeTelegramHtml(p.utcDateIso);
-
+  const nameBold = `<b>${escapeTelegramHtml(p.projectName)}</b>`;
+  const day = escapeTelegramHtml(formatUtcDayLabel(p.targetDayUtc));
   const spend = formatMoney(p.spendUsd);
   const limit = formatMoney(p.thresholdUsd);
-  const over = p.spendUsd - p.thresholdUsd;
-  const overFmt = formatMoney(over);
-  const pct =
-    p.thresholdUsd > 0
-      ? ((over / p.thresholdUsd) * 100).toFixed(1).replace(/\.0$/, "")
-      : "—";
 
-  const sourceLine =
-    p.thresholdSource === "project"
-      ? "<i>Limit: custom (this project)</i>"
-      : "<i>Limit: org default from env</i>";
+  let body =
+    `Neon\n\n` +
+    `📦 ${nameBold}\n\n` +
+    `📅 ${day}\n\n` +
+    `💵 Estimated ${spend}\n\n` +
+    `🎯 Limit ${limit}`;
 
-  const linkBlock =
-    p.dashboardUrl !== null
-      ? `\n\n<a href="${escapeTelegramHtml(p.dashboardUrl)}">Open usage dashboard</a>`
-      : "";
+  if (p.kind === "escalation" && p.previousNotifiedSpendUsd !== undefined) {
+    const delta = p.spendUsd - p.previousNotifiedSpendUsd;
+    const deltaFmt = formatMoney(Math.max(0, delta));
+    body += `\n\n↑ ${deltaFmt} since last alert`;
+  }
 
-  return (
-    `🚨 <b>Neon — spend above threshold</b>\n\n` +
-    `📦 <b>Project</b>\n` +
-    `${name}\n` +
-    `<code>${id}</code>\n\n` +
-    `📅 <b>Day (UTC)</b>\n` +
-    `${date}\n\n` +
-    `💵 <b>Estimated cost (that day)</b>\n` +
-    `${spend}\n\n` +
-    `🎯 <b>Your alert limit</b>\n` +
-    `${limit}\n` +
-    `${sourceLine}\n\n` +
-    `📈 <b>Over limit</b>\n` +
-    `${overFmt}` +
-    (pct !== "—" ? ` <i>(+${pct}% vs limit)</i>` : "") +
-    `\n\n` +
-    `⚙️ Neon pricing plan: <code>${plan}</code>` +
-    linkBlock
-  );
+  return body;
 }

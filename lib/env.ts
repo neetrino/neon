@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { DEFAULT_TELEGRAM_SPEND_ALERT_USD } from "@/lib/constants/spend-alert-default";
+import {
+  DEFAULT_SPEND_ALERT_ESCALATION_MIN_DELTA_USD,
+  DEFAULT_TELEGRAM_SPEND_ALERT_USD,
+} from "@/lib/constants/spend-alert-default";
 
 const optionalNonEmptyString = z.preprocess(
   (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
@@ -26,6 +29,13 @@ const envSchema = z
     TELEGRAM_SPEND_ALERT_DEFAULT_USD: z.preprocess((v) => {
       if (v === undefined || v === null || v === "") {
         return DEFAULT_TELEGRAM_SPEND_ALERT_USD;
+      }
+      return v;
+    }, z.coerce.number().positive()),
+    /** Min estimated spend increase (USD) before a second alert the same UTC day. */
+    SPEND_ALERT_ESCALATION_MIN_DELTA_USD: z.preprocess((v) => {
+      if (v === undefined || v === null || v === "") {
+        return DEFAULT_SPEND_ALERT_ESCALATION_MIN_DELTA_USD;
       }
       return v;
     }, z.coerce.number().positive()),
