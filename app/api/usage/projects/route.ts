@@ -27,5 +27,6 @@ export async function GET() {
   return NextResponse.json({
     projects: filterIgnoredProjectIds(payload),
     defaultSpendAlertUsd: env.TELEGRAM_SPEND_ALERT_DEFAULT_USD,
+    spendAlertEscalationPercentOfThreshold: env.SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD,
   });
 }

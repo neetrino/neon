@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { escalationStepUsd } from "@/lib/constants/spend-alert-default";
 
 /** Upper bound for per-project Telegram spend threshold (USD). */
 const SPEND_ALERT_USD_MAX = 1_000_000;
@@ -9,6 +10,8 @@ type ProjectSpendAlertFieldProps = {
   neonProjectId: string;
   spendAlertThresholdUsd: number | null;
   defaultSpendAlertUsd: number;
+  /** Org setting from env; each further same-day alert needs this % of the limit as extra spend. */
+  spendAlertEscalationPercentOfThreshold: number;
   onSaved: () => void;
 };
 
@@ -16,6 +19,7 @@ export function ProjectSpendAlertField({
   neonProjectId,
   spendAlertThresholdUsd,
   defaultSpendAlertUsd,
+  spendAlertEscalationPercentOfThreshold,
   onSaved,
 }: ProjectSpendAlertFieldProps) {
   const [value, setValue] = useState(
@@ -23,6 +27,12 @@ export function ProjectSpendAlertField({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const limitUsd = spendAlertThresholdUsd ?? defaultSpendAlertUsd;
+  const escalationStep = useMemo(
+    () => escalationStepUsd(limitUsd, spendAlertEscalationPercentOfThreshold),
+    [limitUsd, spendAlertEscalationPercentOfThreshold],
+  );
 
   const save = useCallback(async () => {
     setError(null);
@@ -95,6 +105,12 @@ export function ProjectSpendAlertField({
       {error ? <p className="max-w-[12rem] text-right text-[10px] text-red-600">{error}</p> : null}
       <p className="text-[10px] text-zinc-400" title="Empty = org default from env">
         default ${defaultSpendAlertUsd}
+      </p>
+      <p
+        className="max-w-[12rem] text-right text-[10px] leading-snug text-zinc-400"
+        title="Same UTC day: another alert if spend rises by at least this % of this row’s limit (server env)."
+      >
+        +{spendAlertEscalationPercentOfThreshold}% of limit ≈ ${escalationStep.toFixed(2)} further
       </p>
     </div>
   );

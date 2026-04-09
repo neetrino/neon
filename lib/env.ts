@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  DEFAULT_SPEND_ALERT_ESCALATION_MIN_DELTA_USD,
+  DEFAULT_SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD,
   DEFAULT_TELEGRAM_SPEND_ALERT_USD,
 } from "@/lib/constants/spend-alert-default";
 
@@ -32,13 +32,16 @@ const envSchema = z
       }
       return v;
     }, z.coerce.number().positive()),
-    /** Min estimated spend increase (USD) before a second alert the same UTC day. */
-    SPEND_ALERT_ESCALATION_MIN_DELTA_USD: z.preprocess((v) => {
+    /**
+     * Percent of this project’s alert limit (`TELEGRAM_SPEND_ALERT_DEFAULT_USD` or per-project
+     * override) required as further spend growth before each additional Telegram alert the same UTC day.
+     */
+    SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD: z.preprocess((v) => {
       if (v === undefined || v === null || v === "") {
-        return DEFAULT_SPEND_ALERT_ESCALATION_MIN_DELTA_USD;
+        return DEFAULT_SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD;
       }
       return v;
-    }, z.coerce.number().positive()),
+    }, z.coerce.number().min(0.1).max(100)),
   })
   .superRefine((val, ctx) => {
     if (val.DASHBOARD_PASSWORD && !val.JWT_SECRET) {

@@ -45,11 +45,13 @@ export function ProjectTableCards({
   projects,
   usageByProjectId,
   defaultSpendAlertUsd,
+  spendAlertEscalationPercentOfThreshold,
   onSpendAlertSaved,
 }: {
   projects: ProjectRow[];
   usageByProjectId: Map<string, ProjectUsageAggregate> | null;
   defaultSpendAlertUsd: number;
+  spendAlertEscalationPercentOfThreshold: number;
   onSpendAlertSaved: () => void;
 }) {
   return (
@@ -120,6 +122,7 @@ export function ProjectTableCards({
                   neonProjectId={p.neonProjectId}
                   spendAlertThresholdUsd={p.spendAlertThresholdUsd}
                   defaultSpendAlertUsd={defaultSpendAlertUsd}
+                  spendAlertEscalationPercentOfThreshold={spendAlertEscalationPercentOfThreshold}
                   onSaved={onSpendAlertSaved}
                 />
               </div>

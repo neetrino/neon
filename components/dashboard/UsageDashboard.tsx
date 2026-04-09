@@ -23,7 +23,10 @@ import type {
   SyncRunRow,
   UsageSeriesResponse,
 } from "@/components/dashboard/types";
-import { DEFAULT_TELEGRAM_SPEND_ALERT_USD } from "@/lib/constants/spend-alert-default";
+import {
+  DEFAULT_SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD,
+  DEFAULT_TELEGRAM_SPEND_ALERT_USD,
+} from "@/lib/constants/spend-alert-default";
 
 async function readJson<T>(res: Response): Promise<T> {
   if (res.status === 401) {
@@ -47,6 +50,8 @@ export function UsageDashboard() {
   const [defaultSpendAlertUsd, setDefaultSpendAlertUsd] = useState(
     DEFAULT_TELEGRAM_SPEND_ALERT_USD,
   );
+  const [spendAlertEscalationPercentOfThreshold, setSpendAlertEscalationPercentOfThreshold] =
+    useState(DEFAULT_SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD);
   const [points, setPoints] = useState<SeriesPoint[]>([]);
   const [seriesDisplayUnit, setSeriesDisplayUnit] = useState<UsageSeriesResponse["displayUnit"]>("cu_hours");
   const [totalsPayload, setTotalsPayload] = useState<ProjectTotalsResponse | null>(null);
@@ -166,9 +171,11 @@ export function UsageDashboard() {
       const seriesUrl = `/api/usage/series?${qs.toString()}`;
 
       const [pr, st, pt, se] = await Promise.all([
-        readJson<{ projects: ProjectRow[]; defaultSpendAlertUsd: number }>(
-          await fetch("/api/usage/projects"),
-        ),
+        readJson<{
+          projects: ProjectRow[];
+          defaultSpendAlertUsd: number;
+          spendAlertEscalationPercentOfThreshold: number;
+        }>(await fetch("/api/usage/projects")),
         readJson<{ runs: SyncRunRow[] }>(await fetch("/api/usage/sync-status")),
         readJson<ProjectTotalsResponse>(await fetch(totalsUrl)),
         readJson<UsageSeriesResponse>(await fetch(seriesUrl)),
@@ -176,6 +183,7 @@ export function UsageDashboard() {
 
       setProjects(pr.projects);
       setDefaultSpendAlertUsd(pr.defaultSpendAlertUsd);
+      setSpendAlertEscalationPercentOfThreshold(pr.spendAlertEscalationPercentOfThreshold);
       setRuns(st.runs);
       setTotalsPayload(pt);
       setPoints(se.points);
@@ -353,6 +361,7 @@ export function UsageDashboard() {
           usageByProjectId={usageByProjectId}
           calendarDays={filteredTotalsPayload?.calendarDays ?? null}
           defaultSpendAlertUsd={defaultSpendAlertUsd}
+          spendAlertEscalationPercentOfThreshold={spendAlertEscalationPercentOfThreshold}
           onSpendAlertSaved={load}
         />
       </div>

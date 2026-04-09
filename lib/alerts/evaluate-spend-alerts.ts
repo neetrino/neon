@@ -3,6 +3,7 @@ import { formatSpendAlertTelegramHtml } from "@/lib/alerts/format-spend-alert-me
 import { isIgnoredProjectId } from "@/lib/constants/ignored-projects";
 import { logger } from "@/lib/logger";
 import { getEnv } from "@/lib/env";
+import { escalationStepUsd } from "@/lib/constants/spend-alert-default";
 import { aggregateSnapshotsToProjectUsage } from "@/lib/usage/aggregate-project-costs";
 import type { ProjectUsageAggregate } from "@/components/dashboard/types";
 import { sendTelegramMessage } from "@/lib/telegram/send-telegram-message";
@@ -37,7 +38,7 @@ function lastNotifiedAnchorUsd(row: {
 
 type ThresholdContext = {
   defaultThreshold: number;
-  escalationDelta: number;
+  escalationPercentOfThreshold: number;
   thresholdById: Map<string, number | null>;
   token: string;
   chatId: string;
@@ -169,7 +170,8 @@ async function iterateSpendAlerts(
     }
 
     const anchor = lastNotifiedAnchorUsd(existing);
-    if (spendUsd <= anchor + ctx.escalationDelta) {
+    const escalationDelta = escalationStepUsd(thresholdUsd, ctx.escalationPercentOfThreshold);
+    if (spendUsd <= anchor + escalationDelta) {
       continue;
     }
 
@@ -188,7 +190,7 @@ async function iterateSpendAlerts(
 /**
  * After a usage sync for `targetDay` (UTC), notifies Telegram when estimated spend exceeds the
  * per-project or default threshold: first breach, then escalations when spend grows by at least
- * `SPEND_ALERT_ESCALATION_MIN_DELTA_USD` since the last notification.
+ * `SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD` of that limit since the last notification.
  */
 export async function evaluateSpendAlertsForSyncedDay(targetDay: Date): Promise<void> {
   const env = getEnv();
@@ -201,7 +203,7 @@ export async function evaluateSpendAlertsForSyncedDay(targetDay: Date): Promise<
 
   const ctx: ThresholdContext = {
     defaultThreshold: env.TELEGRAM_SPEND_ALERT_DEFAULT_USD,
-    escalationDelta: env.SPEND_ALERT_ESCALATION_MIN_DELTA_USD,
+    escalationPercentOfThreshold: env.SPEND_ALERT_ESCALATION_PERCENT_OF_THRESHOLD,
     thresholdById: new Map(),
     token,
     chatId,
