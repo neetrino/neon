@@ -3,12 +3,15 @@ import type { NextRequest } from "next/server";
 import { COOKIE_NAME } from "@/lib/auth/dashboard-session";
 import { verifySessionToken } from "@/lib/auth/verify-session-token";
 
+const PUBLIC_STATIC_EXT = /\.(?:ico|png|jpg|jpeg|gif|webp|svg|avif|woff2?)$/i;
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico" ||
+    PUBLIC_STATIC_EXT.test(pathname) ||
     pathname.startsWith("/api/cron/") ||
     pathname === "/api/neon/health"
   ) {

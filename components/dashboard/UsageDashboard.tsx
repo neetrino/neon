@@ -7,6 +7,7 @@ import { buildRechartsRows } from "@/components/dashboard/chart-data";
 import { DashboardFilterSidebar } from "@/components/dashboard/DashboardFilterSidebar";
 import { usePersistedDashboardFilterPrefs } from "@/components/dashboard/use-persisted-dashboard-filter-prefs";
 import { SyncPanel } from "@/components/dashboard/DashboardWidgets";
+import { AppLogo } from "@/components/branding/AppLogo";
 import { UsageKpiStrip } from "@/components/dashboard/UsageKpiStrip";
 import { sumDashboardKpis } from "@/components/dashboard/usage-kpi-summary";
 import {
@@ -270,9 +271,12 @@ export function UsageDashboard() {
       <div className="flex min-w-0 flex-1 flex-col gap-6 p-4 sm:p-6 lg:max-w-[calc(100vw-17.5rem)]">
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-              <span className="text-gradient">Neon</span> usage
-            </h1>
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+              <AppLogo size={40} />
+              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+                <span className="text-gradient">Neon</span> usage
+              </h1>
+            </div>
             <SyncPanel runs={runs} onSyncNow={syncNow} syncingNow={syncingNow} />
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
