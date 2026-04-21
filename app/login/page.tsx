@@ -1,5 +1,6 @@
 "use client";
 
+import { AppLogo } from "@/components/branding/AppLogo";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
@@ -38,9 +39,12 @@ function LoginForm() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4">
       <div className="glass-card w-full max-w-sm p-8">
-        <h1 className="text-xl font-semibold tracking-tight text-zinc-900">
-          <span className="text-gradient">Sign in</span>
-        </h1>
+        <div className="flex items-center gap-3">
+          <AppLogo size={40} />
+          <h1 className="text-xl font-semibold tracking-tight text-zinc-900">
+            <span className="text-gradient">Sign in</span>
+          </h1>
+        </div>
         {err === "config" ? (
           <p className="mt-4 text-sm text-amber-800" role="alert">
             Set <code className="text-xs">JWT_SECRET</code> with{" "}
